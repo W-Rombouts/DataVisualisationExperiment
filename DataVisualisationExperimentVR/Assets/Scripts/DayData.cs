@@ -18,8 +18,12 @@ public class DayData : MonoBehaviour
     MeshRenderer fosfaatMesh;
     MeshRenderer neerslagMesh;
     Vector3 tempHighColor = new Vector3((255f / 255f), (0f / 255f), (0f / 255f));
-    Vector3 tempMediumColor = new Vector3((69f / 255f), (161f / 255f), (247f / 255f));
     Vector3 tempLowColor = new Vector3((41f / 255f), (86f / 255f), (213f / 255f));
+
+    Color[] tempBinColors = new Color[5] { new Color(254f/255f,16f/255f,22f/255f), new Color(252f/255f, 88f/255f, 29f/255f), new Color(250f/255f, 170f/255f, 42f/255f), new Color(248f/255f, 229f/255f, 53f/255f), new Color(38f/255f, 152f/255f, 202f/255f) };
+
+
+   
     readonly int tempSwitchTreshold = 0;
     readonly float fosfaatSwitchTreshold = 1.5f;
     Color actualTempColor;
@@ -33,7 +37,7 @@ public class DayData : MonoBehaviour
 
 
     Vector3 fosfaatLowColor = new Vector3((255f / 255f), (255f / 255f), (255f / 255f));
-    Vector3 fosfaatHighColor = new Vector3((185f / 255f), (63f / 255f), (14f / 255f));
+    Vector3 fosfaatHighColor = new Vector3((84f / 255f), (194f / 255f), (43f / 255f));
 
     // Start is called before the first frame update
     void Start()
@@ -75,45 +79,74 @@ public class DayData : MonoBehaviour
         dayData = gameObject.GetComponentInParent<MonthData>().GetDayData(day);
         firstDatapointOfDay = dayData[0];
 
-        Vector3 Hsv;
-        Color.RGBToHSV(V3toColor(neerslagHighColor), out Hsv.x, out Hsv.y, out Hsv.z);
-        Hsv.y = (float)firstDatapointOfDay.DR / (DataStats.instance.rainMax + DataStats.instance.rainMin)+0.3f;
-        Hsv.z = 1;
-        actualNeerslagColor = Color.HSVToRGB(Hsv.x, Hsv.y, Hsv.z);
+        Vector3 HSB;
+        Color.RGBToHSV(V3toColor(neerslagHighColor), out HSB.x, out HSB.y, out HSB.z);
+        HSB.y = (float)firstDatapointOfDay.DR / (DataStats.instance.rainMax + DataStats.instance.rainMin)+0.3f;
+        HSB.z = 1;
+        actualNeerslagColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
+        neerslagMesh.material.color = actualNeerslagColor;
 
-        if (firstDatapointOfDay.T >= tempSwitchTreshold )
+        if (firstDatapointOfDay.T < 0)
         {
-            Color.RGBToHSV(V3toColor(tempHighColor), out Hsv.x, out Hsv.y, out Hsv.z);
-            Hsv.y = ((float)firstDatapointOfDay.T / (DataStats.instance.tempMax + tempSwitchTreshold))+.4f;
-            Hsv.z = .85f;
-            actualTempColor = Color.HSVToRGB(Hsv.x, Hsv.y, Hsv.z);
+            actualTempColor = tempBinColors[4]; ;
+        }
+        else if (firstDatapointOfDay.T < 100)
+        {
+            actualTempColor = tempBinColors[3];
+        }
+        else if (firstDatapointOfDay.T < 200)
+        {
+            actualTempColor = tempBinColors[2];
+        }
+        else if (firstDatapointOfDay.T < 300)
+        {
+            actualTempColor = tempBinColors[1];
         }
         else
         {
-            Color.RGBToHSV(V3toColor(tempLowColor), out Hsv.x, out Hsv.y, out Hsv.z);
-            Hsv.y =1- ((float)firstDatapointOfDay.T / (tempSwitchTreshold + DataStats.instance.tempMin))-.4f;
-            Hsv.z = .85f;
-            actualTempColor = Color.HSVToRGB(Hsv.x, Hsv.y, Hsv.z);
+            actualTempColor = tempBinColors[0];
         }
+
+
+
+        if (firstDatapointOfDay.T >= tempSwitchTreshold)
+        {
+            Color.RGBToHSV(V3toColor(tempHighColor), out HSB.x, out HSB.y, out HSB.z);
+            HSB.y = ((float)firstDatapointOfDay.T / (DataStats.instance.tempMax + tempSwitchTreshold)) + .4f;
+            HSB.z = .85f;
+            //actualTempColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
+        }
+        else
+        {
+            Color.RGBToHSV(V3toColor(tempLowColor), out HSB.x, out HSB.y, out HSB.z);
+            HSB.y = 1 - ((float)firstDatapointOfDay.T / (tempSwitchTreshold + DataStats.instance.tempMin)) - .4f;
+            HSB.z = .85f;
+            //actualTempColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
+        }
+        tempMesh.material.color = actualTempColor;
+        Debug.Log(actualTempColor);
+
+
+
 
         if (firstDatapointOfDay.fosfaatMetingAT1 >= fosfaatSwitchTreshold)
         {
-            Color.RGBToHSV(V3toColor(fosfaatHighColor), out Hsv.x, out Hsv.y, out Hsv.z);
-            Hsv.z =((float)firstDatapointOfDay.fosfaatMetingAT1 / (DataStats.instance.fosfaatMax + fosfaatSwitchTreshold))+0.5f;
-            Hsv.y = 1f;
-            actualFosfaatColor = Color.HSVToRGB(Hsv.x, Hsv.y, Hsv.z);
+            Color.RGBToHSV(V3toColor(fosfaatHighColor), out HSB.x, out HSB.y, out HSB.z);
+            HSB.z =((float)firstDatapointOfDay.fosfaatMetingAT1 / (DataStats.instance.fosfaatMax + fosfaatSwitchTreshold))+0.5f;
+            HSB.y = 1f;
+            actualFosfaatColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
         }
         else
         {
-            Color.RGBToHSV(V3toColor(fosfaatHighColor), out Hsv.x, out Hsv.y, out Hsv.z);
-            Hsv.y = ((float)firstDatapointOfDay.fosfaatMetingAT1 / (fosfaatSwitchTreshold + DataStats.instance.fosfaatMin))+.5f;
-            Hsv.z = 1f;
+            Color.RGBToHSV(V3toColor(fosfaatHighColor), out HSB.x, out HSB.y, out HSB.z);
+            HSB.y = 1- ((float)firstDatapointOfDay.fosfaatMetingAT1 / (fosfaatSwitchTreshold + DataStats.instance.fosfaatMin))+0.5f;
+            HSB.z = 1f;
             //Hsv.z = .85f;
-            actualFosfaatColor = Color.HSVToRGB(Hsv.x, Hsv.y, Hsv.z);
+            actualFosfaatColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
         }
 
-        tempMesh.material.color = actualTempColor;  
-        neerslagMesh.material.color = actualNeerslagColor;
+        
+       
         fosfaatMesh.material.color = actualFosfaatColor;
 
         tempText.color = Color.white;
