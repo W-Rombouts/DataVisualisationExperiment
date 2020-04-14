@@ -7,7 +7,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Valve.VR;
 
 #if UNITY_5_3_OR_NEWER
 using UnityEngine;
@@ -16,7 +15,7 @@ using UnityEngine;
 namespace Valve.VR
 {
 
-[StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential)]
 public struct IVRSystem
 {
 	[UnmanagedFunctionPointer(CallingConvention.StdCall)]

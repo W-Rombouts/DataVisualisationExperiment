@@ -1,9 +1,20 @@
 ScriptsOnlyBuild:
   usedScripts:
     Assembly-CSharp.dll:
-    - LaserTarget
+    - DataContainer
+    - DataLocation
+    - DataStats
+    - DayData
+    - DigitalRuby.RainMaker.RainCollision
+    - DigitalRuby.RainMaker.RainScript
+    - MonthData
+    - SoundsManager
+    - VRinput
+    - WeatherManager
     SteamVR.dll:
     - Valve.VR.Extras.SteamVR_LaserPointer
+    - Valve.VR.InteractionSystem.Interactable
+    - Valve.VR.SteamVR_ActivateActionSetOnLoad
     - Valve.VR.SteamVR_Behaviour_Pose
     - Valve.VR.SteamVR_Behaviour_Skeleton
     - Valve.VR.SteamVR_ExternalCamera
@@ -12,14 +23,27 @@ ScriptsOnlyBuild:
     - Valve.VR.SteamVR_Settings
     - Valve.VR.SteamVR_Skeleton_Pose
     - Valve.VR.SteamVR_Skeleton_Poser
+    SteamVR_Input_Editor.dll:
+    - Valve.VR.SteamVR_Input_EditorWindow
     Unity.Rider.Editor.dll:
     - Packages.Rider.Editor.UnitTesting.CallbackData
+    Unity.TextMeshPro.dll:
+    - TMPro.TMP_FontAsset
+    - TMPro.TMP_Settings
+    - TMPro.TMP_SpriteAsset
+    - TMPro.TMP_StyleSheet
+    - TMPro.TextMeshProUGUI
     Unity.XR.Management.Editor.dll:
     - UnityEditor.XR.Management.XRGeneralSettingsPerBuildTarget
     UnityEditor.TestRunner.dll:
     - UnityEditor.TestTools.TestRunner.Api.CallbacksHolder
     - UnityEditor.TestTools.TestRunner.TestListCacheData
     - UnityEditor.TestTools.TestRunner.TestRun.TestJobDataHolder
+    UnityEngine.UI.dll:
+    - UnityEngine.EventSystems.EventSystem
+    - UnityEngine.EventSystems.StandaloneInputModule
+    - UnityEngine.UI.CanvasScaler
+    - UnityEngine.UI.GraphicRaycaster
   sceneClasses:
     Assets/Scenes/SampleScene.unity:
     - Class: 1
@@ -40,11 +64,19 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 48
       Script: {instanceID: 0}
+    - Class: 49
+      Script: {instanceID: 0}
     - Class: 64
+      Script: {instanceID: 0}
+    - Class: 65
       Script: {instanceID: 0}
     - Class: 74
       Script: {instanceID: 0}
     - Class: 81
+      Script: {instanceID: 0}
+    - Class: 82
+      Script: {instanceID: 0}
+    - Class: 83
       Script: {instanceID: 0}
     - Class: 90
       Script: {instanceID: 0}
@@ -56,27 +88,73 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 108
       Script: {instanceID: 0}
+    - Class: 109
+      Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 11418}
+      Script: {instanceID: 11218}
     - Class: 114
-      Script: {instanceID: 11512}
+      Script: {instanceID: 11234}
     - Class: 114
-      Script: {instanceID: 11912}
+      Script: {instanceID: 11244}
     - Class: 114
-      Script: {instanceID: 12360}
+      Script: {instanceID: 11348}
     - Class: 114
-      Script: {instanceID: 12828}
+      Script: {instanceID: 11462}
     - Class: 114
-      Script: {instanceID: 12832}
+      Script: {instanceID: 11556}
     - Class: 114
-      Script: {instanceID: 12850}
+      Script: {instanceID: 11560}
     - Class: 114
-      Script: {instanceID: 13172}
+      Script: {instanceID: 11946}
     - Class: 114
-      Script: {instanceID: 13224}
+      Script: {instanceID: 11962}
     - Class: 114
-      Script: {instanceID: 16648}
+      Script: {instanceID: 11966}
+    - Class: 114
+      Script: {instanceID: 12002}
+    - Class: 114
+      Script: {instanceID: 12254}
+    - Class: 114
+      Script: {instanceID: 12384}
+    - Class: 114
+      Script: {instanceID: 12418}
+    - Class: 114
+      Script: {instanceID: 12522}
+    - Class: 114
+      Script: {instanceID: 12596}
+    - Class: 114
+      Script: {instanceID: 12656}
+    - Class: 114
+      Script: {instanceID: 12812}
+    - Class: 114
+      Script: {instanceID: 12826}
+    - Class: 114
+      Script: {instanceID: 12900}
+    - Class: 114
+      Script: {instanceID: 12904}
+    - Class: 114
+      Script: {instanceID: 12922}
+    - Class: 114
+      Script: {instanceID: 13072}
+    - Class: 114
+      Script: {instanceID: 13148}
+    - Class: 114
+      Script: {instanceID: 13244}
+    - Class: 114
+      Script: {instanceID: 13296}
+    - Class: 114
+      Script: {instanceID: 13336}
+    - Class: 114
+      Script: {instanceID: 13412}
+    - Class: 114
+      Script: {instanceID: 13590}
+    - Class: 114
+      Script: {instanceID: 13598}
     - Class: 115
+      Script: {instanceID: 0}
+    - Class: 128
+      Script: {instanceID: 0}
+    - Class: 135
       Script: {instanceID: 0}
     - Class: 136
       Script: {instanceID: 0}
@@ -84,7 +162,19 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 157
       Script: {instanceID: 0}
+    - Class: 182
+      Script: {instanceID: 0}
     - Class: 196
+      Script: {instanceID: 0}
+    - Class: 198
+      Script: {instanceID: 0}
+    - Class: 199
+      Script: {instanceID: 0}
+    - Class: 222
+      Script: {instanceID: 0}
+    - Class: 223
+      Script: {instanceID: 0}
+    - Class: 224
       Script: {instanceID: 0}
   scriptHashData:
   - hash:
@@ -119,6 +209,12 @@ ScriptsOnlyBuild:
     className: DestroyOnParticleSystemDeath
   - hash:
       serializedVersion: 2
+      Hash: 7b11a8dc502e2dc12d60e6add5a04f09
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: DayData
+  - hash:
+      serializedVersion: 2
       Hash: 3c08375166df118bd1801438fc36b92f
     assemblyName: Unity.TextMeshPro.dll
     namespaceName: TMPro
@@ -149,6 +245,12 @@ ScriptsOnlyBuild:
     className: TMP_Dropdown
   - hash:
       serializedVersion: 2
+      Hash: cf0406f277cad8ec73c6191c09974c7d
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: DigitalRuby.RainMaker
+    className: DemoScript
+  - hash:
+      serializedVersion: 2
       Hash: c4a6d5610ab09ad85bf9b1a877b6b7c5
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR.InteractionSystem
@@ -159,6 +261,12 @@ ScriptsOnlyBuild:
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR.InteractionSystem.Sample
     className: AmbientSound
+  - hash:
+      serializedVersion: 2
+      Hash: 2dd2bacdc5371d1256b8aca94283063e
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: DigitalRuby.RainMaker
+    className: RainScript
   - hash:
       serializedVersion: 2
       Hash: c8ebe1a6445d89267090af7e7c5c957f
@@ -297,6 +405,12 @@ ScriptsOnlyBuild:
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR
     className: SteamVR_Settings
+  - hash:
+      serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: VRinput
   - hash:
       serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
@@ -473,6 +587,12 @@ ScriptsOnlyBuild:
     className: LockToPoint
   - hash:
       serializedVersion: 2
+      Hash: d47f22182882bd44dfe4069def4ebace
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: MonthData
+  - hash:
+      serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR.InteractionSystem.Sample
@@ -609,6 +729,18 @@ ScriptsOnlyBuild:
     assemblyName: Unity.TextMeshPro.dll
     namespaceName: TMPro
     className: TMP_Asset
+  - hash:
+      serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: DataLocation
+  - hash:
+      serializedVersion: 2
+      Hash: bafafebaf368cc9cf899a62faff990e1
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: LaserTarget
   - hash:
       serializedVersion: 2
       Hash: 5157f5188d43b4cd4d990c7fa928868a
@@ -755,6 +887,12 @@ ScriptsOnlyBuild:
     className: DestroyOnTriggerEnter
   - hash:
       serializedVersion: 2
+      Hash: 7141b37d85fd21f859794b925fb0ba54
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: DataContainer
+  - hash:
+      serializedVersion: 2
       Hash: 2f659d8f26d4563ee5f206d3a4bcb776
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR.InteractionSystem
@@ -779,6 +917,12 @@ ScriptsOnlyBuild:
     className: RenderModel
   - hash:
       serializedVersion: 2
+      Hash: 1a54fa0372f64f0aa311d445332e24b9
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: DigitalRuby.RainMaker
+    className: RainCollision
+  - hash:
+      serializedVersion: 2
       Hash: 8eb3a5f0b7fd900742b16e7776e2275b
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR
@@ -797,16 +941,34 @@ ScriptsOnlyBuild:
     className: VerticalLayoutGroup
   - hash:
       serializedVersion: 2
+      Hash: 73ce8e5d03d27a5f45809b8d248a41d1
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: WeatherManager
+  - hash:
+      serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR
     className: SteamVR_Fade
   - hash:
       serializedVersion: 2
+      Hash: d18cc7ba10aa006e6bd980ec49a29a17
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: DigitalRuby.RainMaker
+    className: BaseRainScript
+  - hash:
+      serializedVersion: 2
       Hash: ef01145d01005ab9549541e17c69be56
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR
     className: SteamVR_Skybox
+  - hash:
+      serializedVersion: 2
+      Hash: 76b6aef2414f95a502f23603160b5812
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: DigitalRuby.RainMaker
+    className: RainScript2D
   - hash:
       serializedVersion: 2
       Hash: 7d19057642c463daceac505ab19dd37e
@@ -909,6 +1071,12 @@ ScriptsOnlyBuild:
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR
     className: SteamVR_TrackingReferenceManager
+  - hash:
+      serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: DisableOnLoad
   - hash:
       serializedVersion: 2
       Hash: 234e568b7e618d7c4c9c2cba046fc579
@@ -1109,6 +1277,12 @@ ScriptsOnlyBuild:
     className: TMP_StyleSheet
   - hash:
       serializedVersion: 2
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: DataStats
+  - hash:
+      serializedVersion: 2
       Hash: dcc608e96ec2ac8ad8de1fc54d7d0b7a
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR.InteractionSystem.Sample
@@ -1119,6 +1293,12 @@ ScriptsOnlyBuild:
     assemblyName: SteamVR.dll
     namespaceName: Valve.VR.InteractionSystem
     className: CircularDrive
+  - hash:
+      serializedVersion: 2
+      Hash: 5debaa58a5b0baf31a991235de0c9047
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: DigitalRuby.RainMaker
+    className: DemoScriptStartRainOnSpaceBar
   - hash:
       serializedVersion: 2
       Hash: df434544c9f7b33d1cc7e635b180d279
@@ -1181,6 +1361,12 @@ ScriptsOnlyBuild:
     className: VelocityEstimator
   - hash:
       serializedVersion: 2
+      Hash: da72d5124e2ced2a9dafa1f76240dda8
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: DigitalRuby.RainMaker
+    className: DemoScript2D
+  - hash:
+      serializedVersion: 2
       Hash: a63fc1a3b035e5a0b5839cd7f7b3086e
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.EventSystems
@@ -1215,6 +1401,12 @@ ScriptsOnlyBuild:
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.UI
     className: Dropdown
+  - hash:
+      serializedVersion: 2
+      Hash: 4fa6b17178312abd6e5db7c75c57ffef
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: SoundsManager
   - hash:
       serializedVersion: 2
       Hash: 748dd2a2a28da4e618912da5ac45684b
@@ -1287,12 +1479,6 @@ ScriptsOnlyBuild:
     assemblyName: Unity.Timeline.dll
     namespaceName: UnityEngine.Timeline
     className: PlayableTrack
-  - hash:
-      serializedVersion: 2
-      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
-    assemblyName: Assembly-CSharp.dll
-    namespaceName: 
-    className: LaserTarget
   platform: 19
   scenePathNames:
   - Assets/Scenes/SampleScene.unity
