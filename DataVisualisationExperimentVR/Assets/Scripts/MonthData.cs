@@ -14,35 +14,7 @@ public class MonthData : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        var pos = transform.position;
-        var rot = transform.rotation;
-        monthData = DataContainer.instance.GetByMonth(month);
-        foreach (Datapoint datapoint in monthData)
-        {
-            if (!daylist.Contains(datapoint.Day))
-            {
-                daylist.Add(datapoint.Day);
-            }
-        }
-        int countery = 7;
-        int counterx = 6;
-        foreach (int dayNumber in daylist)
-        {
-            if (counterx ==6)
-            {
-                counterx = 0;
-                countery--;
-            }
-            float x = counterx * 0.4f;
-            float y = countery * 0.4f;
-
-            GameObject createdDay = Instantiate(Day,new Vector3(x, y, 0f), Quaternion.Euler(0f,90f,0f),transform);
-            createdDay.GetComponent<DayData>().day = dayNumber;
-            counterx++;
-            
-        }
-        transform.rotation = transform.rotation * Anker.transform.rotation;
-        transform.position = Anker.transform.position;
+       
         
     }
 
@@ -64,4 +36,39 @@ public class MonthData : MonoBehaviour
         }        
         return dayData;
     }
+
+
+    public void GenerateMonth()
+    {
+        var pos = transform.position;
+        var rot = transform.rotation;
+        monthData = DataContainer.instance.GetByMonth(month);
+        foreach (Datapoint datapoint in monthData)
+        {
+            if (!daylist.Contains(datapoint.Day))
+            {
+                daylist.Add(datapoint.Day);
+            }
+        }
+        int countery = 7;
+        int counterx = 6;
+        foreach (int dayNumber in daylist)
+        {
+            if (counterx == 6)
+            {
+                counterx = 0;
+                countery--;
+            }
+            float x = counterx * 0.4f;
+            float y = countery * 0.4f;
+
+            GameObject createdDay = Instantiate(Day, new Vector3(x, y, 0f), Quaternion.Euler(0f, 90f, 0f), transform);
+            createdDay.GetComponent<DayData>().day = dayNumber;
+            counterx++;
+
+        }
+        transform.rotation = transform.rotation * Anker.transform.rotation;
+        transform.position = Anker.transform.position;
+    }
+
 }

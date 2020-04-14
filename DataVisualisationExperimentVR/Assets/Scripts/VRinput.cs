@@ -39,10 +39,20 @@ public class VRinput : MonoBehaviour
         Ray raycast = new Ray(transform.position, transform.forward);
         RaycastHit hit;
         Physics.Raycast(raycast, out hit);
-        if (!DataContainer.instance.isPlaying)
+        Debug.Log(hit.collider.gameObject.name);
+        if (hit.collider.gameObject.name == "Day(Clone)")
         {
-            hit.collider.gameObject.GetComponentInParent<DayData>().playDay = true;
-            DataContainer.instance.isPlaying = true;
+            if (!DataContainer.instance.isPlaying)
+            {
+                hit.collider.gameObject.GetComponentInParent<DayData>().playDay = true;
+                DataContainer.instance.isPlaying = true;
+            }
         }
+        else if (hit.collider.gameObject.name == "Gennep")
+        {
+            DataContainer.instance.GetByYear();
+            hit.collider.gameObject.SetActive(false);
+        }
+       
     }
 }

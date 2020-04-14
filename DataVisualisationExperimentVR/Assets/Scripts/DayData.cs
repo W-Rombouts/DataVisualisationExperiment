@@ -124,7 +124,6 @@ public class DayData : MonoBehaviour
             //actualTempColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
         }
         tempMesh.material.color = actualTempColor;
-        Debug.Log(actualTempColor);
 
 
 
