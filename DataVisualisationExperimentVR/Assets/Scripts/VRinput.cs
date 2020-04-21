@@ -8,6 +8,7 @@ public class VRinput : MonoBehaviour
     void Start()
     {
         hasShot = false;
+
     }
 
     // Update is called once per frame

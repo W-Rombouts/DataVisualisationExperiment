@@ -15,31 +15,27 @@ public class DayData : MonoBehaviour
     MeshRenderer tempMesh;
     MeshRenderer fosfaatMesh;
     MeshRenderer neerslagMesh;
-    Vector3 tempHighColor = new Vector3((255f / 255f), (0f / 255f), (0f / 255f));
-    Vector3 tempLowColor = new Vector3((41f / 255f), (86f / 255f), (213f / 255f));
+
 
     Color[] tempBinColors = new Color[5] { new Color(254f/255f,16f/255f,22f/255f), new Color(252f/255f, 88f/255f, 29f/255f), new Color(250f/255f, 170f/255f, 42f/255f), new Color(248f/255f, 229f/255f, 53f/255f), new Color(38f/255f, 152f/255f, 202f/255f) };
+    Color[] fosfaatBinColors = new Color[7] { new Color(180f/255f, 255f/255f, 153f/255f), new Color(142f/255f, 255f/255f, 102f/255f), new Color(102f / 255f, 255f / 255f, 51f / 255f), new Color(70f / 255f, 255f / 255f, 0f / 255f), new Color(54f / 255f, 204f / 255f, 0f / 255f), new Color(41f / 255f, 153f / 255f, 0f / 255f), new Color(27f / 255f, 102f / 255f, 0f / 255f) };
+    Color[] neerslagBinColors = new Color[5] { new Color(153f / 255f, 200f / 255f, 255f / 255f), new Color(77f / 255f, 159f / 255f, 255f / 255f), new Color(51f / 255f, 146f / 255f, 255f / 255f), new Color(26f / 255f, 131f / 255f, 255f / 255f), new Color(0f / 255f, 127f / 255f, 255f / 255f) };
 
 
-   
-    readonly int tempSwitchTreshold = 0;
-    readonly float fosfaatSwitchTreshold = 1.5f;
     Color actualTempColor;
     Color actualFosfaatColor;
 
 
 
-    Vector3 neerslagLowColor = new Vector3((255f / 255f), (255f / 255f), (255f / 255f));
-    Vector3 neerslagHighColor = new Vector3((5f / 255f), (8f / 255f), (84f / 255f));
     Color actualNeerslagColor;
 
-
-    Vector3 fosfaatLowColor = new Vector3((255f / 255f), (255f / 255f), (255f / 255f));
-    Vector3 fosfaatHighColor = new Vector3((84f / 255f), (194f / 255f), (43f / 255f));
 
     // Start is called before the first frame update
     void Start()
     {
+        dayData = gameObject.GetComponentInParent<MonthData>().GetDayData(day);
+        firstDatapointOfDay = dayData[0];
+
         TextMeshProUGUI[] textMeshes = gameObject.GetComponentsInChildren<TextMeshProUGUI>();
         foreach (TextMeshProUGUI textMesh in textMeshes)
         {
@@ -62,89 +58,94 @@ public class DayData : MonoBehaviour
             if (meshRenderer.name == "Temp")
             {
                 tempMesh = meshRenderer;
+                if (firstDatapointOfDay.T < 0)
+                {
+                    actualTempColor = tempBinColors[4]; ;
+                }
+                else if (firstDatapointOfDay.T < 100)
+                {
+                    actualTempColor = tempBinColors[3];
+                }
+                else if (firstDatapointOfDay.T < 200)
+                {
+                    actualTempColor = tempBinColors[2];
+                }
+                else if (firstDatapointOfDay.T < 300)
+                {
+                    actualTempColor = tempBinColors[1];
+                }
+                else
+                {
+                    actualTempColor = tempBinColors[0];
+                }
+                tempMesh.material.color = actualTempColor;
             }
             else if (meshRenderer.name == "Fosfaat")
             {
                 fosfaatMesh = meshRenderer;
+                if (firstDatapointOfDay.fosfaatMetingAT1 < 0.5)
+                {
+                    actualFosfaatColor = fosfaatBinColors[0]; ;
+                }
+                else if (firstDatapointOfDay.fosfaatMetingAT1 < 1)
+                {
+                    actualFosfaatColor = fosfaatBinColors[1];
+                }
+                else if (firstDatapointOfDay.fosfaatMetingAT1 < 1.5)
+                {
+                    actualFosfaatColor = fosfaatBinColors[2];
+                }
+                else if (firstDatapointOfDay.fosfaatMetingAT1 < 2)
+                {
+                    actualFosfaatColor = fosfaatBinColors[3];
+                }
+                else if (firstDatapointOfDay.fosfaatMetingAT1 < 2.5)
+                {
+                    actualFosfaatColor = fosfaatBinColors[4];
+                }
+                else if (firstDatapointOfDay.fosfaatMetingAT1 < 3)
+                {
+                    actualFosfaatColor = fosfaatBinColors[5];
+                }
+                else
+                {
+                    actualNeerslagColor = fosfaatBinColors[6];
+                }
+
+                fosfaatMesh.material.color = actualFosfaatColor;
+            }
+            else if (meshRenderer.name == "Neerslag")
+            {
+                neerslagMesh = meshRenderer;
+                if (firstDatapointOfDay.DR < 2)
+                {
+                    actualNeerslagColor = neerslagBinColors[0]; ;
+                }
+                else if (firstDatapointOfDay.DR < 4)
+                {
+                    Debug.Log(firstDatapointOfDay.DR);
+                    actualNeerslagColor = Color.white;
+                    actualNeerslagColor = neerslagBinColors[1];
+                }
+                else if (firstDatapointOfDay.DR < 6)
+                {
+                    actualNeerslagColor = neerslagBinColors[2];
+                }
+                else if (firstDatapointOfDay.DR < 8)
+                {
+                    actualNeerslagColor = neerslagBinColors[3];
+                }
+                else
+                {
+                    actualNeerslagColor = neerslagBinColors[4];
+                }
+                neerslagMesh.material.color = actualNeerslagColor;
             }
             else
             {
-                neerslagMesh = meshRenderer;
+                
             }
         }
-
-        
-        dayData = gameObject.GetComponentInParent<MonthData>().GetDayData(day);
-        firstDatapointOfDay = dayData[0];
-
-        Vector3 HSB;
-        Color.RGBToHSV(V3toColor(neerslagHighColor), out HSB.x, out HSB.y, out HSB.z);
-        HSB.y = (float)firstDatapointOfDay.DR / (DataStats.instance.rainMax + DataStats.instance.rainMin)+0.3f;
-        HSB.z = 1;
-        actualNeerslagColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
-        neerslagMesh.material.color = actualNeerslagColor;
-
-        if (firstDatapointOfDay.T < 0)
-        {
-            actualTempColor = tempBinColors[4]; ;
-        }
-        else if (firstDatapointOfDay.T < 100)
-        {
-            actualTempColor = tempBinColors[3];
-        }
-        else if (firstDatapointOfDay.T < 200)
-        {
-            actualTempColor = tempBinColors[2];
-        }
-        else if (firstDatapointOfDay.T < 300)
-        {
-            actualTempColor = tempBinColors[1];
-        }
-        else
-        {
-            actualTempColor = tempBinColors[0];
-        }
-
-
-
-        if (firstDatapointOfDay.T >= tempSwitchTreshold)
-        {
-            Color.RGBToHSV(V3toColor(tempHighColor), out HSB.x, out HSB.y, out HSB.z);
-            HSB.y = ((float)firstDatapointOfDay.T / (DataStats.instance.tempMax + tempSwitchTreshold)) + .4f;
-            HSB.z = .85f;
-            //actualTempColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
-        }
-        else
-        {
-            Color.RGBToHSV(V3toColor(tempLowColor), out HSB.x, out HSB.y, out HSB.z);
-            HSB.y = 1 - ((float)firstDatapointOfDay.T / (tempSwitchTreshold + DataStats.instance.tempMin)) - .4f;
-            HSB.z = .85f;
-            //actualTempColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
-        }
-        tempMesh.material.color = actualTempColor;
-
-
-
-
-        if (firstDatapointOfDay.fosfaatMetingAT1 >= fosfaatSwitchTreshold)
-        {
-            Color.RGBToHSV(V3toColor(fosfaatHighColor), out HSB.x, out HSB.y, out HSB.z);
-            HSB.z =((float)firstDatapointOfDay.fosfaatMetingAT1 / (DataStats.instance.fosfaatMax + fosfaatSwitchTreshold))+0.5f;
-            HSB.y = 1f;
-            actualFosfaatColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
-        }
-        else
-        {
-            Color.RGBToHSV(V3toColor(fosfaatHighColor), out HSB.x, out HSB.y, out HSB.z);
-            HSB.y = 1- ((float)firstDatapointOfDay.fosfaatMetingAT1 / (fosfaatSwitchTreshold + DataStats.instance.fosfaatMin))+0.5f;
-            HSB.z = 1f;
-            //Hsv.z = .85f;
-            actualFosfaatColor = Color.HSVToRGB(HSB.x, HSB.y, HSB.z);
-        }
-
-        
-       
-        fosfaatMesh.material.color = actualFosfaatColor;
 
         tempText.color = Color.white;
         tempText.SetText((firstDatapointOfDay.T / 10) + " Celcius");
@@ -158,6 +159,7 @@ public class DayData : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //TODO: Move to datamanager
         if (playDay)
         {
             playDayTimer += Time.deltaTime;

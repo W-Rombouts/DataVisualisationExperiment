@@ -13,7 +13,7 @@ public class DataContainer : MonoBehaviour
     public GameObject WestWall;
 
 
-    private Datapoint SampleDatapoint = new Datapoint { T = 250, Day = 1, Time = "08:00:00", fosfaatMetingAT1 = 1.5, DR = 3 };
+    private Datapoint SampleDatapoint = new Datapoint { T = 250, Day = 1, Time = "06:00:00", fosfaatMetingAT1 = 1.5, DR = 3 };
     public Datapoint DefaultDatapoint = new Datapoint { T = 250, Day = 1, Time = "12:00:00", fosfaatMetingAT1 = 1.5, DR = 0 };
     public List<Datapoint> dataBase = new List<Datapoint>();
     JsonSerializerSettings settings = new JsonSerializerSettings
