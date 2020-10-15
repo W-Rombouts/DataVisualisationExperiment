@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.datavisualisationexperimentvr.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Users\\woute\\PycharmProjects\\KNMI\\DataVisualisationExperiment\\DataVisualisationExperimentVR\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "C:\\Users\\Wouter\\Documents\\GitHub\\DataVisualisationExperiment\\DataVisualisationExperimentVR\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "DataVisualisationExperimentVR [Testing]"
