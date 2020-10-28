@@ -11,6 +11,7 @@
 /[Mm]emoryCaptures/
 /NetworksJson/
 /NetworksXML/
+/DataVisualisationExperimentVR/Library/
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
 

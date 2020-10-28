@@ -9,6 +9,7 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Mm]emoryCaptures/
+/DataVisualisationExperimentVR/Library/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
