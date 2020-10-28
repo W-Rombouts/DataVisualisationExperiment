@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.sonificationresearchexploration.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "C:\\Users\\Wouter\\Documents\\GitHub\\DataVisualisationExperiment\\SonificationResearchExploration\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "C:\\Users\\WRombouts\\Documents\\GitHub\\DataVisualisationExperiment\\SonificationResearchExploration\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "SonificationResearchExploration [Testing]"

@@ -1,47 +1,164 @@
-﻿using System.Collections;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
 using UnityEngine;
+using UnityEngine.Experimental.AI;
 
 public class NetworkManager : MonoBehaviour
 {
-    public List<Graph> graphs;
-    public Dictionary<Node,GameObject> NodeObjects;
+    public bool isCone = false;
+    public bool NetworkOnStart = true;
+    public List<Graph> CurrentGraphs;
+    public Dictionary<Node,int> NodeReference = new Dictionary<Node, int>();
+    public NetworkObjects NetworkObjectContainer;
     public GameObject EdgeObject;
     public GameObject NodeObject;
-    public string path = "Assets/ResearchApplication/Data/klmnetwork.xml";
+    public string dataPath = "Assets/ResearchApplication/Data/klmnetwork.xml";
 
-
-    float highestlikecount = 38964105; //TODO: make variable
+    float highestConnecitonCount = 132; //TODO: make variable
     float MinimumNodeSize = 0.25f;
+
+    private static NetworkManager _instance;
+    public  bool destroy;
+    public bool loadAlternateNodeLayout;
+    public string AlternateNodePath= "NetworksJson/";
+
+    public static NetworkManager Instance { get { return _instance; } }
+    private void Awake()
+    {
+        if (_instance != null && _instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            _instance = this;
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        CurrentGraphs = loadData(dataPath);
+        SetReference(CurrentGraphs);
+        if (loadAlternateNodeLayout)
+        {
+            LoadAlternateLayout(AlternateNodePath);
+        }
+        if (NetworkOnStart)
+        {
+            NetworkObjectContainer = InstantiateNetwork(CurrentGraphs);
+        }
+        if (destroy)
+        {
+            DestroyNetwork();
+        }
+      
+    }
 
-        NodeObjects = new Dictionary<Node, GameObject>();
-        graphs = loadData();
+    private void LoadAlternateLayout(string alternateNodePath)
+    {
+        string alternateNodePathJsonString = File.ReadAllText(alternateNodePath);
+        int[] alternateLayout = JsonConvert.DeserializeObject<int[]>(alternateNodePathJsonString);
+        List<Node> alternateLayoutNodes = new List<Node>();
+        foreach (int nodeId in alternateLayout)
+        {
+            alternateLayoutNodes.Add(NodeReference.First(x => x.Value == nodeId).Key);
+        }
+        CurrentGraphs[0].nodes = alternateLayoutNodes;
+    }
+
+    private void SetReference(List<Graph> currentGraphs)
+    {
+        int counter = 0;
+        foreach (Node node in currentGraphs[0].nodes)
+        {
+            NodeReference[node] = counter;
+            counter++;
+        }
+    }
+
+    public NetworkObjects InstantiateNetwork(List<Graph> graphs)
+    {
+        float lenghtCount = 0f;
+        Vector3 postition = Vector3.one;
+        Dictionary<Node, GameObject> nodeObjects = new Dictionary<Node, GameObject>();
+        List<GameObject> networkObjects = new List<GameObject>();
+        float counter = 0f;
+        int connectionCounter = 0;
+        float numberOfNodes = graphs[0].nodes.Count;
         foreach (Node node in graphs[0].nodes)
         {
-            
-            GameObject nodeObject = Instantiate(NodeObject, node.configuration.position, Quaternion.identity);
-            Debug.Log(node.data.numLikes / highestlikecount);
-            nodeObject.gameObject.transform.localScale = nodeObject.gameObject.transform.localScale * ((node.data.numLikes / highestlikecount)+MinimumNodeSize);
-            NodeObjects.Add(node,nodeObject);
-        }
+            if (node.incomingEdges.Count + node.outgoingEdges.Count > connectionCounter)
+            {
+                connectionCounter = node.incomingEdges.Count + node.outgoingEdges.Count;
+            }
 
+
+            int numberConnections = node.incomingEdges.Count + node.outgoingEdges.Count;
+
+            if (isCone)
+            {
+                postition = Vector3.Lerp(new Vector3(Mathf.Cos(counter / numberOfNodes * 360) * 30, (numberConnections / highestConnecitonCount) * 30, Mathf.Sin(counter / numberOfNodes * 360) * 30), new Vector3(0f, (numberConnections / highestConnecitonCount) * 30, 0f), numberConnections / highestConnecitonCount);
+            }
+            else
+            {
+                if (numberConnections / highestConnecitonCount == 1)
+                {
+                    postition = new Vector3(0f, (numberConnections / highestConnecitonCount) * 30, 0f);
+                }
+                else
+                {
+                    postition = new Vector3(Mathf.Cos(counter / numberOfNodes * 360) * 30, (numberConnections / highestConnecitonCount) * 30, Mathf.Sin(counter / numberOfNodes * 360) * 30);
+                }
+            }
+
+            GameObject nodeObject = Instantiate(NodeObject, postition, Quaternion.identity);//node.configuration.position
+            networkObjects.Add(nodeObject);
+            nodeObject.gameObject.transform.localScale = nodeObject.gameObject.transform.localScale * ((numberConnections / highestConnecitonCount) + MinimumNodeSize);
+            nodeObjects.Add(node, nodeObject);
+            
+            counter++;
+
+        }
+        //Debug.Log("number of connections" + connectionCounter);
         foreach (Edge edge in graphs[0].edges)
         {
             GameObject edgeObject = Instantiate(EdgeObject);
+            networkObjects.Add(edgeObject);
             EdgeBehaviour edgeScript = edgeObject.GetComponent<EdgeBehaviour>();
-            edgeScript.leftNode = NodeObjects[edge.startNode];
-            edgeScript.rightNode = NodeObjects[edge.endNode];
+            edgeScript.leftNode = nodeObjects[edge.startNode];
+            edgeScript.rightNode = nodeObjects[edge.endNode];
+            lenghtCount += Vector3.Distance(edgeScript.leftNode.transform.position, edgeScript.rightNode.transform.position);
         }
-
-
-
+        NetworkObjects networkObjectContainer = new NetworkObjects();
+        networkObjectContainer.networkObjects = networkObjects;
+        networkObjectContainer.lenghtCount = lenghtCount;
+        NetworkObjectContainer = networkObjectContainer;
+        return networkObjectContainer;
     }
+
+    public struct NetworkObjects
+    {
+        public List<GameObject> networkObjects;
+        public float lenghtCount;
+    }
+
+    public void DestroyNetwork()
+    {
+        foreach (GameObject go in NetworkObjectContainer.networkObjects)
+        {
+            Destroy(go);
+        }
+        
+    }
+
 
 
     // Update is called once per frame
@@ -50,7 +167,7 @@ public class NetworkManager : MonoBehaviour
         
     }
 
-    public List<Graph> loadData()
+    public List<Graph> loadData(string path)
     {
         XmlDocument xmlDoc = new XmlDocument();
         List<Graph> graphList = new List<Graph>();
@@ -115,7 +232,7 @@ public class NetworkManager : MonoBehaviour
                     {
                         // TODO: change the configuration based on the node type
                         // we choose some random positions here
-                        position = new Vector3(Random.Range(-10, 10), Random.Range(-10, 10), Random.Range(-10, 10)),
+                        position = new Vector3(UnityEngine.Random.Range(-10, 10), UnityEngine.Random.Range(-10, 10), UnityEngine.Random.Range(-10, 10)),
                         force = new Vector3()
                     };
 
@@ -163,6 +280,8 @@ public class NetworkManager : MonoBehaviour
 
     public class Graph
     {
+        public Graph() { }
+        
         private Dictionary<GameObject, Node> goNodeMap = new Dictionary<GameObject, Node>();
 
         public Graph(List<Node> nodes, List<Edge> edges)
@@ -171,7 +290,7 @@ public class NetworkManager : MonoBehaviour
             this.edges = edges;
         }
 
-        public List<Node> nodes { get; }
+        public List<Node> nodes { get; set; }
 
         public List<Edge> edges { get; }
 
@@ -190,6 +309,7 @@ public class NetworkManager : MonoBehaviour
 
     public class Node
     {
+        public Node() { }
         public Node(NodeData data, NodeConfiguration configuration)
         {
             this.data = data;
@@ -225,6 +345,7 @@ public class NetworkManager : MonoBehaviour
 
     public class Edge
     {
+        public Edge() { }
         private GameObject _target;
 
         public Edge(Node startNode, Node endNode, string id)
@@ -293,6 +414,7 @@ public class NetworkManager : MonoBehaviour
 
     public class NodeData
     {
+        public NodeData() { }
         public string id;
         public string imageUrl;
         public string label;
