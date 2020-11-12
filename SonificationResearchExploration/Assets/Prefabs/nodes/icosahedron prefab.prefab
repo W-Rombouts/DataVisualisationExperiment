@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 4000014222688426}
   - component: {fileID: 135000013006832644}
   - component: {fileID: 4737975624065702351}
+  - component: {fileID: 2463665741055233323}
   m_Layer: 0
   m_Name: icosahedron prefab
   m_TagString: Untagged
@@ -108,6 +109,19 @@ Light:
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &2463665741055233323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000010248055316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 351625664b80ed846b0f6a1611759688, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  flareMesh: {fileID: 23000010998583826}
 --- !u!1 &1000010699948564
 GameObject:
   m_ObjectHideFlags: 0

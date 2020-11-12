@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: fa55621149b6dfa4e81d3f71b370df1d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - VisualCue: {fileID: 1000010248055316, guid: f9ee9a371cd3408449972d203e8ee135,
+      type: 3}
+  - defaultClip: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -5,19 +5,18 @@ public class SoundGen : MonoBehaviour
 {
     public int position = 0;
     public int samplerate = 44100;
-    public float frequency = 220;
-    public GameObject audioSource;
+    public float frequency = 262f;
     public SoundPattern soundPattern;
+    public GameObject VisualCue;
+    public AudioClip defaultClip;
 
-    void Start()
+    public AudioClip MakeAudioClip(float tone = 262f)
     {
+        frequency = tone;
         AudioClip myClip = AudioClip.Create("MySinusoid", samplerate * 2, 1, samplerate, true, OnAudioRead, OnAudioSetPosition);
-        AudioSource aud = audioSource.gameObject.AddComponent<AudioSource>();
-        aud.loop = true;
-        aud.spatialBlend = 1f;
-        aud.clip = myClip;
-        aud.Play();
+        return myClip;
     }
+
 
     void OnAudioRead(float[] data)
     {
@@ -30,6 +29,7 @@ public class SoundGen : MonoBehaviour
                     data[count] = Mathf.Sin(2 * Mathf.PI * frequency * position / samplerate);
                     break;
                 //Sounpatterns Below have clicking artifacts
+                /*
                 case SoundPattern.Rechtangle:
                     data[count] = (Mathf.Repeat(count * frequency / samplerate, 1) > 0.5f) ? 1f : -1f;
                     break;
@@ -39,7 +39,7 @@ public class SoundGen : MonoBehaviour
                 case SoundPattern.Triangle:
                     data[count] = Mathf.PingPong(count * 2f * frequency / samplerate, 1) * 2f - 1f;
                     break;
-
+                */
             }
             position++;
             count++;
@@ -53,9 +53,37 @@ public class SoundGen : MonoBehaviour
 
     public enum SoundPattern
     {
-        Sine,
+        Sine
+        /*
+        Artifacting in other types
         Rechtangle,
         Sawtooth,
         Triangle
+        */
+    }
+}
+
+public class AudioStopTimer : MonoBehaviour
+{
+    public float duration = 0f;
+    public AudioSource AS;
+    public bool isLocation = false;
+    float counter = 0f;
+    private void Update()
+    {
+        counter += Time.deltaTime;
+        if (counter >= duration)
+        {
+            if (isLocation)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                Destroy(AS);
+                Destroy(this);
+            }
+        }
+
     }
 }

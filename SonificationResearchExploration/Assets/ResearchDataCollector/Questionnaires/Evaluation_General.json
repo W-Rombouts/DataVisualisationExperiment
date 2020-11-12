@@ -1,0 +1,218 @@
+{
+  "QuestionBlocks": [
+    {
+      "SubTitle": "General Feedback",
+      "BlockQuestion": "Spontanious Feedback",
+      "Questions": [
+        {
+          "question": "Please descibe your experience while using this application, do you think it can be beneficial? Do you have critical aspects?",
+          "questionType": 4,
+          "likertIs5": false,
+          "multiAnswers": [ "yes", "no" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "Do you have unaided vision (i.e., no prescription of glasses/lenses)?",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "yes", "no" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "How old are you?",
+          "questionType": 1,
+          "likertIs5": false,
+          "multiAnswers": [],
+          "numberScaleMax": 100,
+          "numberScaleMin": 1,
+          "numPadDefaultValue": ""
+        }
+      ]
+    },
+    {
+      "SubTitle": "GENERAL REFLECTION ",
+      "BlockQuestion": "Overall. to what extent do you agree with the following statements concerning each tool?All statements will be assessed on a 7-point scale from Strongly Disagree to Strongly Agree.",
+      "Questions": [
+        {
+          "question": "  Solving the tasks using this application was fun.",
+          "questionType": 0,
+          "likertIs5": true,
+          "multiAnswers": [],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": " Solving the tasks using this applicationwas boring.",
+          "questionType": 0,
+          "likertIs5": true,
+          "multiAnswers": [],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": " Solving the tasks using this applicationwas interesting.",
+          "questionType": 0,
+          "likertIs5": true,
+          "multiAnswers": [],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": " Solving the tasks using this applicationwas absorbing.",
+          "questionType": 0,
+          "likertIs5": true,
+          "multiAnswers": [],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": " Solving the tasks using this applicationwas enjoyable.",
+          "questionType": 0,
+          "likertIs5": true,
+          "multiAnswers": [],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        }
+      ]
+    },
+    {
+      "SubTitle": "TAM MEASUREMENT  ",
+      "BlockQuestion": "Based on your perception, to what extent do you agree with the following statements",
+      "Questions": [
+        {
+          "question": "Based on your perception, to what extent do you agree with the following statements",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "Using this application would improve my job performance",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "Using this application in my job would increase my productivity.",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "Using this application would enhance my effectiveness on the job.",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "Using this application would make it easier to do my job.",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "I would find this application useful in my job.",
+          "questionType": 0,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither ", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        }
+      ]
+    },
+    {
+      "SubTitle": "TAM MEASUREMENT  2",
+      "BlockQuestion": "Based on your perception, to what extent do you agree with the following statements",
+      "Questions": [
+        {
+          "question": "Learning to operate this application would be easy for me.",
+          "questionType": 0,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "I would find it easy to get  this application to do what I want it to do.",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "My interaction with this application would be clear and understandable.",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Unlikely", "quite Unlikely", "extremely Unlikely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "I would find this application to be flexible to interact with.",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "It would be easy for me to become skillful at using this application",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "It would be easy for me to become skillful at using this application",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "I would find this application easy to use.",
+          "questionType": 2,
+          "likertIs5": false,
+          "multiAnswers": [ "extremely Unlikely", "quite Unlikely", "slightly Unlikely", "neither", "slightly Likely", "quite Likely", "extremely Likely" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        }
+      ]
+    }
+  ],
+  "Title": "Evaluation_General"
+}

@@ -20,6 +20,7 @@ public class PointerCursor : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //TODO: Create button interaction
         distance += SteamVR_Actions.default_Extend.GetAxis(SteamVR_Input_Sources.RightHand).y*.01f;
 
         if (distance > 1f)
