@@ -1,6 +1,3 @@
-#if UNITY_5_4_OR_NEWER || (UNITY_5 && !UNITY_5_0 && !UNITY_5_1 && !UNITY_5_2 && !UNITY_5_3)
-	#define AVPRO_MOVIECAPTURE_RENDERTEXTUREDIMENSIONS_54
-#endif
 #if UNITY_5_6_0 || UNITY_5_6_1 
 	#define AVPRO_MOVIECAPTURE_UNITYBUG_RENDERTOCUBEMAP_56
 #endif
@@ -13,6 +10,7 @@
 	#endif
 #endif
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections;
 
 //-----------------------------------------------------------------------------
@@ -286,7 +284,13 @@ namespace RenderHeads.Media.AVProMovieCapture
 						NativePlugin.SetTexturePointer(_handle, _targetNativePointer);
 
 						RenderThreadEvent(NativePlugin.PluginEvent.CaptureFrameBuffer);
-						GL.InvalidateState();
+
+						// ADG NOTE: Causes screen flickering under D3D12, even if we're not doing any rendering at native level
+						// And also seems to cause GL.sRGBWrite to be set to false, which causes screen darkening in Linear mode
+						if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12)
+						{
+							GL.InvalidateState();
+						}
 
 						UpdateFPS();
 					}
@@ -566,6 +570,15 @@ namespace RenderHeads.Media.AVProMovieCapture
 				return false;
 			}
 #endif
+
+			// Check cubemap resolution support
+			int cubemapResolution = (int)_cubemapResolution;
+			if (cubemapResolution > SystemInfo.maxCubemapSize)
+			{
+				cubemapResolution = SystemInfo.maxCubemapSize;
+				Debug.LogWarning("[AVProMovieCapture] Reducing cubemap size to system max: " + cubemapResolution);
+			}
+
 			// Setup material
 			_pixelFormat = NativePlugin.PixelFormat.RGBA32;
 			_isTopDown = true;
@@ -628,8 +641,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 				if (_faceTarget != null)
 				{
 					_faceTarget.DiscardContents();
-					if (_faceTarget.width != (int)_cubemapResolution || 
-						_faceTarget.height != (int)_cubemapResolution || 
+					if (_faceTarget.width != (int)cubemapResolution || 
+						_faceTarget.height != (int)cubemapResolution || 
 						_faceTarget.depth != (int)_cubemapDepth || 
 						_faceTarget.antiAliasing != aaLevel)
 					{
@@ -641,7 +654,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				{
 					if (_faceTarget == null)
 					{
-						_faceTarget = new RenderTexture((int)_cubemapResolution, (int)_cubemapResolution, (int)_cubemapDepth, RenderTextureFormat.Default, RenderTextureReadWrite.Default);
+						_faceTarget = new RenderTexture((int)cubemapResolution, (int)cubemapResolution, (int)_cubemapDepth, RenderTextureFormat.Default, RenderTextureReadWrite.Default);
 						_faceTarget.name = "[AVProMovieCapture] 360 Face Target";
 						_faceTarget.isPowerOfTwo = true;
 						_faceTarget.wrapMode = TextureWrapMode.Clamp;
@@ -689,8 +702,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 				if (_cubeTarget != null)
 				{
 					_cubeTarget.DiscardContents();
-					if (_cubeTarget.width != (int)_cubemapResolution || 
-						_cubeTarget.height != (int)_cubemapResolution || 
+					if (_cubeTarget.width != cubemapResolution || 
+						_cubeTarget.height != cubemapResolution || 
 						_cubeTarget.depth != cubeDepth || 
 						_cubeTarget.antiAliasing != cubeAA)
 					{
@@ -700,16 +713,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 				}
 				if (_cubeTarget == null)
 				{
-					_cubeTarget = new RenderTexture((int)_cubemapResolution, (int)_cubemapResolution, cubeDepth, RenderTextureFormat.Default, RenderTextureReadWrite.Default);
+					_cubeTarget = new RenderTexture(cubemapResolution, cubemapResolution, cubeDepth, RenderTextureFormat.Default, RenderTextureReadWrite.Default);
 					_cubeTarget.name = "[AVProMovieCapture] 360 Cube Target";
 					_cubeTarget.isPowerOfTwo = true;
-
-#if AVPRO_MOVIECAPTURE_RENDERTEXTUREDIMENSIONS_54
 					_cubeTarget.dimension = UnityEngine.Rendering.TextureDimension.Cube;
-#else
-					_cubeTarget.isCubemap = true;
-#endif
-
 					_cubeTarget.useMipMap = false;
 					_cubeTarget.autoGenerateMips = false;
 					_cubeTarget.antiAliasing = cubeAA;

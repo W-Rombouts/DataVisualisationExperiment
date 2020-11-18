@@ -11,6 +11,11 @@ public class LogThisObject : MonoBehaviour
         ResearchDataCollector.Instance.trackedGameObject.Add(this.gameObject);
     }
 
+    private void OnDestroy()
+    {
+        ResearchDataCollector.Instance.trackedGameObject.Remove(this.gameObject);
+    }
+
     // Update is called once per frame
     void Update()
     {

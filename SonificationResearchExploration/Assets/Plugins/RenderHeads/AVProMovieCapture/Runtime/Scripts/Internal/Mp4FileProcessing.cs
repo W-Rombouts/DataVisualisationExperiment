@@ -1,8 +1,6 @@
-﻿#if UNITY_5_4_OR_NEWER || (UNITY_5 && !UNITY_5_0)
-	#define RH_UNITY_FEATURE_DEBUG_ASSERT
-#endif
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using System.IO;
 using System;
@@ -23,14 +21,14 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		//private static uint Atom_ftyp = ChunkId("ftyp");		// file type
 		private static uint Atom_moov = ChunkId("moov");		// movie header
-		private static uint Atom_mdat  = ChunkId("mdat");		// movie data
-		private static uint Atom_cmov  = ChunkId("cmov");		// compressed movie data
-		private static uint Atom_trak  = ChunkId("trak");		// track header
-		private static uint Atom_mdia  = ChunkId("mdia");		// media
-		private static uint Atom_minf  = ChunkId("minf");		// media information
-		private static uint Atom_stbl  = ChunkId("stbl");		// sample table
-		private static uint Atom_stco  = ChunkId("stco");		// sample table chunk offsets (32-bit)
-		private static uint Atom_co64  = ChunkId("co64");		// sample table chunk offsets (64-bit)
+		private static uint Atom_mdat = ChunkId("mdat");		// movie data
+		private static uint Atom_cmov = ChunkId("cmov");		// compressed movie data
+		private static uint Atom_trak = ChunkId("trak");		// track header
+		private static uint Atom_mdia = ChunkId("mdia");		// media
+		private static uint Atom_minf = ChunkId("minf");		// media information
+		private static uint Atom_stbl = ChunkId("stbl");		// sample table
+		private static uint Atom_stco = ChunkId("stco");		// sample table chunk offsets (32-bit)
+		private static uint Atom_co64 = ChunkId("co64");		// sample table chunk offsets (64-bit)
 		
 		private class Chunk
 		{
@@ -41,6 +39,35 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		private BinaryReader _reader;
 		private Stream _writeFile;
+
+		public static ManualResetEvent ApplyFastStartAsync(string filePath, bool keepBackup)
+		{
+			if (!File.Exists(filePath))
+			{
+				Debug.LogError("File not found: " + filePath);
+				return null;
+			}
+
+			ManualResetEvent syncEvent = new ManualResetEvent(false);
+
+			Thread thread = new Thread(
+				() =>
+				{
+					try
+					{
+						ApplyFastStart(filePath, keepBackup);
+					}
+					catch (System.Exception e)
+					{
+						UnityEngine.Debug.LogException(e);
+					}
+					syncEvent.Set();
+				}
+			);
+			thread.Start();
+
+			return syncEvent;
+		}
 
 		public static bool ApplyFastStart(string filePath, bool keepBackup)
 		{
@@ -85,7 +112,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				{
 					MP4FileProcessing mp4 = new MP4FileProcessing();
 					bool result = mp4.Open(srcStream, dstStream);
-					mp4.Close();				
+					mp4.Close();
 					return result;
 				}
 			}
@@ -129,9 +156,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			// Reorder so that "moov" chunk is before any "mdat" chunks
 			if (canReorder && isReorderNeeded)
 			{
-#if RH_UNITY_FEATURE_DEBUG_ASSERT
 				Debug.Assert(chunk_moov.offset > chunk_mdat.offset);
-#endif
 				ulong bytesOffset = (ulong)(chunk_moov.size);
 
 				//Debug.Log("offseting by: " + bytesOffset);

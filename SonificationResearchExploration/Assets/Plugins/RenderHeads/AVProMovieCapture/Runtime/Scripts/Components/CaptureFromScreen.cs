@@ -1,8 +1,5 @@
-#if UNITY_5_6_OR_NEWER
-	#define AVPRO_UNITY_CLASS_DISPLAY
-#endif
-
 using UnityEngine;
+using UnityEngine.Rendering;
 using System.Collections;
 
 //-----------------------------------------------------------------------------
@@ -21,6 +18,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 		//private const int NewFrameSleepTimeMs = 6;
 		[SerializeField] bool _captureMouseCursor = false;
 		[SerializeField] MouseCursor _mouseCursor = null;
+
+		private System.IntPtr _targetNativePointer = System.IntPtr.Zero;
+		private RenderTexture _resolveTexture = null;
+		private CommandBuffer _commandBuffer = null;
 
 		public bool CaptureMouseCursor
 		{
@@ -58,7 +59,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				_mouseCursor.enabled = _captureMouseCursor;
 			}
 
-#if AVPRO_UNITY_CLASS_DISPLAY && UNITY_EDITOR
+#if UNITY_EDITOR
 			if (Display.displays.Length > 1)
 			{
 				bool isSecondDisplayActive = false;
@@ -101,12 +102,77 @@ namespace RenderHeads.Media.AVProMovieCapture
 			return base.PrepareCapture();
 		}
 
+		private void CopyRenderTargetToTexture()
+		{
+#if false
+			// RJT TODO: If using D3D12 we need to read the current 'Display.main.colorBuffer', pass it down
+			// to native and extract the texture using 'IUnityGraphicsD3D12v5::TextureFromRenderBuffer()'
+			// - Although, as is, this doesn't work: https://forum.unity.com/threads/direct3d12-native-plugin-render-to-screen.733025/
+			if (_targetNativePointer == System.IntPtr.Zero)
+			{
+				_targetNativePointer = Display.main.colorBuffer.GetNativeRenderBufferPtr();
+//						_targetNativePointer = Graphics.activeColorBuffer.GetNativeRenderBufferPtr();
+				NativePlugin.SetColourBuffer(_handle, _targetNativePointer);
+			}
+#endif
+#if true
+			if ((_targetNativePointer == System.IntPtr.Zero) ||
+				(_resolveTexture && ((_resolveTexture.width != Screen.width) || (_resolveTexture.height != Screen.height)))
+			)
+			{
+				FreeRenderResources();
+
+				// Create RT matching screen extents
+				_resolveTexture = RenderTexture.GetTemporary(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB, 1);
+				_resolveTexture.Create();
+				_targetNativePointer = _resolveTexture.GetNativeTexturePtr();
+				NativePlugin.SetTexturePointer(_handle, _targetNativePointer);
+
+				// Create command buffer
+				_commandBuffer = new CommandBuffer();
+				_commandBuffer.name = "AVPro Movie Capture copy";
+				_commandBuffer.Blit(BuiltinRenderTextureType.CurrentActive, _resolveTexture);
+			}
+#endif
+
+			Graphics.ExecuteCommandBuffer(_commandBuffer);
+		}
+
+		private void FreeRenderResources()
+		{
+			// Command buffer
+			if (_commandBuffer != null)
+			{
+				_commandBuffer.Release();
+				_commandBuffer = null;
+			}
+
+			// Resolve texture
+			_targetNativePointer = System.IntPtr.Zero;
+			if (_resolveTexture)
+			{
+				RenderTexture.ReleaseTemporary(_resolveTexture);
+				_resolveTexture = null;
+			}
+		}
+
 		public override void UnprepareCapture()
 		{
+			if (_handle != -1)
+			{
+				#if false
+				NativePlugin.SetColourBuffer(_handle, System.IntPtr.Zero);
+				#endif
+				NativePlugin.SetTexturePointer(_handle, System.IntPtr.Zero);
+			}
+
+			FreeRenderResources();
+
 			if (_mouseCursor != null)
 			{
 				_mouseCursor.enabled = false;
 			}
+
 			base.UnprepareCapture();
 		}
 
@@ -128,8 +194,23 @@ namespace RenderHeads.Media.AVProMovieCapture
 			{
 				// Grab final RenderTexture into texture and encode
 				EncodeUnityAudio();
-				RenderThreadEvent(NativePlugin.PluginEvent.CaptureFrameBuffer);
-				GL.InvalidateState();
+
+				// RJT NOTE: Separate D3D12 path for now as it can't grab native RT
+				if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Direct3D12)
+				{
+					CopyRenderTargetToTexture();
+					RenderThreadEvent(NativePlugin.PluginEvent.CaptureFrameBuffer);
+				}
+				else
+				{
+					RenderThreadEvent(NativePlugin.PluginEvent.CaptureFrameBuffer);
+
+					// RJT NOTE: Causes screen flickering under D3D12, even if we're not doing any rendering at native level
+					if (SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12)
+					{
+						GL.InvalidateState();
+					}
+				}
 
 				UpdateFPS();
 			}

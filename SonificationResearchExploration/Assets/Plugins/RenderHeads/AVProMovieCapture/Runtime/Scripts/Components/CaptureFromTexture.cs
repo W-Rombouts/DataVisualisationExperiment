@@ -1,6 +1,3 @@
-#if UNITY_5_4_OR_NEWER
-	#define AVPRO_MOVIECAPTURE_RENDERTEXTUREBGRA32_54
-#endif
 using UnityEngine;
 using System.Collections;
 
@@ -48,10 +45,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 				if (!result &&
 					(rt.format != RenderTextureFormat.ARGB32) &&
-					(rt.format != RenderTextureFormat.Default)
-#if AVPRO_MOVIECAPTURE_RENDERTEXTUREBGRA32_54
-					&& (rt.format != RenderTextureFormat.BGRA32)
-#endif
+					(rt.format != RenderTextureFormat.Default) &&
+					(rt.format != RenderTextureFormat.BGRA32)
 					)
 				{
 					// Exotic texture formats require resolving
@@ -179,7 +174,17 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 			if (_resolveTexture == null)
 			{
-				_resolveTexture = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
+				RenderTextureReadWrite readWriteMode = RenderTextureReadWrite.sRGB;
+				if (QualitySettings.activeColorSpace == ColorSpace.Linear && _sourceTexture is WebCamTexture)
+				{
+					// WebCamTexture has odd behaviour, and we're found that we need to resolve without the sRGB conversion
+					// It's still not 100% correct though - dark colours seem to get crushed to black - we suspect
+					// this is due to it using limited range instead of full...
+					
+					// NOTE: This is now commented out as the behaviour isn't correct in Unity 2020
+					//	readWriteMode = RenderTextureReadWrite.Linear;
+				}
+				_resolveTexture = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32, readWriteMode);
 				_resolveTexture.Create();
 				_targetNativePointer = _resolveTexture.GetNativeTexturePtr();
 			}
@@ -208,6 +213,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 				return _resolveTexture;
 			}
 			if (_sourceTexture is RenderTexture)
+			{
+				return _sourceTexture;
+			}
+			if (_sourceTexture is WebCamTexture)
 			{
 				return _sourceTexture;
 			}

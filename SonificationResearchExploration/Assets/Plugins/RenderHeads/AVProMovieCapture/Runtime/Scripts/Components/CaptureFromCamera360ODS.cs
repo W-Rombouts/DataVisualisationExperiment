@@ -1,8 +1,4 @@
-﻿#if UNITY_5_5_OR_NEWER 
-	#define AVPRO_MOVIECAPTURE_UNITYPROFILER_55
-#endif
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -136,8 +132,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 			camera.clearFlags = _settings.cameraClearMode;
 			camera.backgroundColor = _settings.cameraClearColor;
 			camera.cullingMask = cullingMask;
-			camera.useOcclusionCulling = _settings.camera.useOcclusionCulling;
+			camera.useOcclusionCulling = false;
 			camera.renderingPath = _settings.camera.renderingPath;
+			camera.nearClipPlane = _settings.camera.nearClipPlane;
+			camera.farClipPlane = _settings.camera.farClipPlane;
 #if UNITY_5_6_OR_NEWER
 			camera.allowHDR = _settings.camera.allowHDR;
 			camera.allowMSAA = _settings.camera.allowMSAA;
@@ -379,13 +377,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 #endif
 
-#if AVPRO_MOVIECAPTURE_UNITYPROFILER_55
 			// This component makes the profiler use a TON of memory, so warn the user to disable it
 			if (UnityEngine.Profiling.Profiler.enabled)
 			{
 				Debug.LogWarning("[AVProMovieCapture] Having the Unity profiler enabled while using the CaptureFromCamera360ODS component is not recommended. Too many samples are generated which can make the system run out of memory. Disable the profiler, close the window and remove the tab. A Unity restart may be required after disabling the profiler recording");
 			}
-#endif
 
 			// Setup material
 			_pixelFormat = NativePlugin.PixelFormat.RGBA32;

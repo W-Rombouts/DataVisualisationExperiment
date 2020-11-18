@@ -1,5 +1,8 @@
-#if UNITY_5_4_OR_NEWER || UNITY_5
-	#define AVPRO_MOVIECAPTURE_DEFERREDSHADING
+#if UNITY_2017_3_OR_NEWER
+	#define AVPRO_MOVIECAPTURE_OFFLINE_AUDIOCAPTURE
+#endif
+#if UNITY_5_6_OR_NEWER && UNITY_2018_3_OR_NEWER
+	#define AVPRO_MOVIECAPTURE_VIDEOPLAYER_SUPPORT
 #endif
 #if UNITY_2017_1_OR_NEWER
 	#define AVPRO_MOVIECAPTURE_PLAYABLES_SUPPORT
@@ -248,6 +251,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 			RelativeToDesktop,
 		}
 
+		public enum FrameUpdateMode
+		{
+			Automatic,
+			Manual,
+		}
+
 		/*public enum OutputExtension
 		{
 			AVI,
@@ -343,6 +352,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		[Tooltip("Timelapse scale makes the frame capture run at a fraction of the target frame rate.  Default value is 1")]
 		[SerializeField] int _timelapseScale = 1;
+		[Tooltip("Manual update mode requires user to call FrameUpdate() each time a frame is ready")]
+		[SerializeField] FrameUpdateMode _frameUpdateMode = FrameUpdateMode.Automatic;
 
 		[SerializeField] DownScale _downScale = DownScale.Original;
 		[SerializeField] Vector2 _maxVideoSize = Vector2.zero;
@@ -367,9 +378,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 		[SerializeField] bool _logCaptureStartStop = true;
 
 		// Audio options
+
 		[SerializeField] AudioCaptureSource _audioCaptureSource = AudioCaptureSource.None;
 		[SerializeField] UnityAudioCapture _unityAudioCapture = null;
 		[SerializeField, Range(0, 32)] int _forceAudioInputDeviceIndex = 0;
+		[SerializeField, Range(8000, 96000)] int _manualAudioSampleRate = 48000;
+		[SerializeField, Range(1, 8)] int _manualAudioChannelCount = 2;
 
 		// Output options
 
@@ -500,6 +514,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 #if AVPRO_MOVIECAPTURE_PLAYABLES_SUPPORT
 		[SerializeField] TimelineController _timelineController = null;
 #endif
+#if AVPRO_MOVIECAPTURE_VIDEOPLAYER_SUPPORT
+		[SerializeField] VideoPlayerController _videoPlayerController = null;
+#endif
 
 		//public bool _allowFrameRateChange = true;
 
@@ -528,7 +545,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		private float _startDelayTimer;
 		private bool _startPaused;
-		private System.Action<FileWritingHandler> _fileWritingAction;
+		private System.Action<FileWritingHandler> _beginFinalFileWritingAction;
 		private List<FileWritingHandler> _pendingFileWrites = new List<FileWritingHandler>(4);
 
 		public string LastFilePath
@@ -536,10 +553,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 			get { return _filePath; }
 		}
 
-		public System.Action<FileWritingHandler> FileWritingAction
+		// Register for notification of when the final file writing begins
+		public System.Action<FileWritingHandler> BeginFinalFileWritingAction
 		{
-			get { return _fileWritingAction; }
-			set { _fileWritingAction = value; }
+			get { return _beginFinalFileWritingAction; }
+			set { _beginFinalFileWritingAction = value; }
 		}
 
 		// Stats
@@ -581,6 +599,18 @@ namespace RenderHeads.Media.AVProMovieCapture
 		{
 			get { return _audioCaptureSource; }
 			set { _audioCaptureSource = value; }
+		}
+
+		public int ManualAudioSampleRate
+		{
+			get { return _manualAudioSampleRate; }
+			set { _manualAudioSampleRate = value; }
+		}
+
+		public int ManualAudioChannelCount
+		{
+			get { return _manualAudioChannelCount; }
+			set { _manualAudioChannelCount = value; }
 		}
 
 		public UnityAudioCapture UnityAudioCapture
@@ -672,6 +702,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 			set { _timelapseScale = value; }
 		}
 
+		public FrameUpdateMode FrameUpdate
+		{
+			get { return _frameUpdateMode; }
+			set { _frameUpdateMode = value; }
+		}
+
 		public DownScale ResolutionDownScale
 		{
 			get { return _downScale; }
@@ -729,6 +765,14 @@ namespace RenderHeads.Media.AVProMovieCapture
 		}
 		#endif
 
+		#if AVPRO_MOVIECAPTURE_VIDEOPLAYER_SUPPORT
+		public VideoPlayerController VideoPlayerController
+		{
+			get { return _videoPlayerController; }
+			set { _videoPlayerController = value; }
+		}
+		#endif
+
 		public Codec SelectedVideoCodec
 		{
 			get { return _selectedVideoCodec; }
@@ -754,8 +798,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					get { return _forceVideoCodecIndexMacOS; }
 					set { _forceVideoCodecIndexMacOS = value; }
 				#else
-					get { return _forceVideoCodecIndexWindows; }
-					set { _forceVideoCodecIndexWindows = value; }
+					get { return -1; }
+					set { }
 				#endif
 			#else
 				#if UNITY_STANDALONE_WIN
@@ -768,8 +812,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					get { return _forceVideoCodecIndexIOS; }
 					set { _forceVideoCodecIndexIOS = value; }
 				#else
-					get { return _imageSequenceFormatWindows; }
-					set { _imageSequenceFormatWindows = value; }
+					get { return -1; }
+					set { }
 				#endif
 			#endif
 		}
@@ -784,8 +828,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					get { return _forceAudioCodecIndexMacOS; }
 					set { _forceAudioCodecIndexMacOS = value; }
 				#else
-					get { return _forceAudioCodecIndexWindows; }
-					set { _forceAudioCodecIndexWindows = value; }
+					get { return -1; }
+					set { }
 				#endif
 			#else
 				#if UNITY_STANDALONE_WIN
@@ -798,8 +842,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					get { return _forceAudioCodecIndexIOS; }
 					set { _forceAudioCodecIndexIOS = value; }
 				#else
-					get { return _imageSequenceFormatWindows; }
-					set { _imageSequenceFormatWindows = value; }
+					get { return -1; }
+					set { }
 				#endif
 			#endif
 		}
@@ -814,8 +858,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					get { return _imageSequenceFormatMacOS; }
 					set { _imageSequenceFormatMacOS = value; }
 				#else
-					get { return _imageSequenceFormatWindows; }
-					set { _imageSequenceFormatWindows = value; }
+					get { return ImageSequenceFormat.PNG; }
+					set { }
 				#endif
 			#else
 				#if UNITY_STANDALONE_WIN
@@ -828,8 +872,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 					get { return _imageSequenceFormatIOS; }
 					set { _imageSequenceFormatIOS = value; }
 				#else
-					get { return _imageSequenceFormatWindows; }
-					set { _imageSequenceFormatWindows = value; }
+					get { return ImageSequenceFormat.PNG; }
+					set { }
 				#endif
 			#endif
 		}
@@ -940,11 +984,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				catch (DllNotFoundException e)
 				{
 					string missingDllMessage = string.Empty;
-	#if (UNITY_5 || UNITY_5_4_OR_NEWER)
 					missingDllMessage = "Unity couldn't find the plugin DLL. Please select the native plugin files in 'Plugins/RenderHeads/AVProMovieCapture/Plugins' folder and select the correct platform in the Inspector.";
-	#else
-					missingDllMessage = "Unity couldn't find the plugin DLL, Unity 4.x requires the 'Plugins' folder to be at the root of your project.  Please move the contents of the 'Plugins' folder (in Plugins/RenderHeads/AVProMovieCapture/Plugins) to the 'Plugins' folder in the root of your project.";
-	#endif
 					Debug.LogError("[AVProMovieCapture] " + missingDllMessage);
 	#if UNITY_EDITOR
 					UnityEditor.EditorUtility.DisplayDialog("Plugin files not found", missingDllMessage, "Ok");
@@ -1019,10 +1059,17 @@ namespace RenderHeads.Media.AVProMovieCapture
 			{
 				if (codecList.Count > 0)
 				{
-					codec = codecList.GetFirstWithMediaApi(matchMediaApi);
+					if (matchMediaApi != MediaApi.Unknown)
+					{
+						codec = codecList.GetFirstWithMediaApi(matchMediaApi);
+					}
+					else
+					{
+						codec = codecList.Codecs[0];
+					}
 					if (logFallbackWarning)
 					{
-						Debug.LogWarning("[AVProMovieCapture] Codec not found.  Video will be use the codec available.");
+						Debug.LogWarning("[AVProMovieCapture] Codec not found. Using the first codec available.");
 					}
 				}
 			}
@@ -1151,7 +1198,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		public virtual void OnDestroy()
 		{
 			_waitForEndOfFrame = null;
-			StopCapture(false, true);
+			StopCapture(true, true);
 			FreePendingFileWrites();
 
 			// Make sure there are no other capture instances running and then deinitialise the plugin
@@ -1211,12 +1258,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		protected bool IsUsingUnityAudio()
 		{
-			return (_isRealTime && _outputTarget == OutputTarget.VideoFile && _audioCaptureSource == AudioCaptureSource.Unity && _unityAudioCapture != null);
-		}
-
-		protected bool IsRecordingUnityAudio()
-		{
-			return (IsUsingUnityAudio() && _unityAudioCapture.isActiveAndEnabled);
+			return (
+			#if !AVPRO_MOVIECAPTURE_OFFLINE_AUDIOCAPTURE
+					_isRealTime &&
+			#endif
+					_outputTarget == OutputTarget.VideoFile && _audioCaptureSource == AudioCaptureSource.Unity && _unityAudioCapture != null);
 		}
 
 		protected bool IsUsingMotionBlur()
@@ -1226,7 +1272,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		public virtual void EncodePointer(System.IntPtr ptr)
 		{
-			if (!IsRecordingUnityAudio())
+			if (!IsUsingUnityAudio())
 			{
 				NativePlugin.EncodeFrame(_handle, ptr);
 			}
@@ -1243,6 +1289,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 					NativePlugin.EncodeFrame(_handle, ptr);
 				}
 			}
+		}
+
+		public bool IsPrepared()
+		{
+			return (_handle >= 0);
 		}
 
 		public bool IsCapturing()
@@ -1376,47 +1427,89 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 		}
 
-		public UnityAudioCapture FindOrCreateAudioCapture(bool logWarnings)
+		public UnityAudioCapture FindOrCreateUnityAudioCapture(bool logWarnings)
 		{
 			UnityAudioCapture result = null;
 
-			// Try to find it locally
-			result = this.GetComponent<UnityAudioCapture>();
-			if (result == null)
+			Type audioCaptureType = null;
+			if (_isRealTime)
 			{
-				// Try to find it globally
-				result = GameObject.FindObjectOfType<UnityAudioCapture>();
+				 audioCaptureType = typeof(CaptureAudioFromAudioListener);
+			}
+			else
+			{
+				#if AVPRO_MOVIECAPTURE_OFFLINE_AUDIOCAPTURE
+				audioCaptureType = typeof(CaptureAudioFromAudioRenderer);
+				#endif
 			}
 
-			if (result == null)
+			if (audioCaptureType != null)
 			{
-				// Find an AudioListener to attach the UnityAudioCapture component to
-				AudioListener audioListener = this.GetComponent<AudioListener>();
-				if (audioListener == null)
+				// Try to find an existing matching component locally
+				result = (UnityAudioCapture)this.GetComponent(audioCaptureType);
+				if (result == null)
 				{
-					audioListener = GameObject.FindObjectOfType<AudioListener>();
+					// Try to find an existing matching component globally
+					result = (UnityAudioCapture)GameObject.FindObjectOfType(audioCaptureType);
 				}
-				if (audioListener != null)
+
+				// No existing component was found, so create one
+				if (result == null)
 				{
-					result = audioListener.gameObject.AddComponent<UnityAudioCapture>();
-					if (logWarnings)
+					// Find a suitable gameobject to add the component to
+					GameObject parentGameObject = null;
+					if (_isRealTime)
 					{
-						Debug.LogWarning("[AVProMovieCapture] Capturing audio from Unity without an UnityAudioCapture assigned so we had to create one manually (very slow).  Consider adding a UnityAudioCapture component to your scene and assigned it to this MovieCapture component.");
+						// Find an AudioListener to attach the UnityAudioCapture component to
+						AudioListener audioListener = this.GetComponent<AudioListener>();
+						if (audioListener == null)
+						{
+							audioListener = GameObject.FindObjectOfType<AudioListener>();
+						}
+						parentGameObject = audioListener.gameObject;
+					}
+					else
+					{
+						parentGameObject = this.gameObject;
+					}
+
+					// Create the component
+					if (_isRealTime)
+					{
+						if (parentGameObject != null)
+						{
+							result = (UnityAudioCapture)parentGameObject.AddComponent(audioCaptureType);
+							if (logWarnings)
+							{
+								Debug.LogWarning("[AVProMovieCapture] Capturing audio from Unity without an UnityAudioCapture assigned so we had to create one manually (very slow).  Consider adding a UnityAudioCapture component to your scene and assigned it to this MovieCapture component.");
+							}
+						}
+						else
+						{
+							if (logWarnings)
+							{
+								Debug.LogWarning("[AVProMovieCapture] No AudioListener found in scene.  Unable to capture audio from Unity.");
+							}
+						}
+					}
+					else
+					{
+						#if AVPRO_MOVIECAPTURE_OFFLINE_AUDIOCAPTURE
+						result = (UnityAudioCapture)parentGameObject.AddComponent(audioCaptureType);
+						((CaptureAudioFromAudioRenderer)result).Capture = this;
+						if (logWarnings)
+						{
+							Debug.LogWarning("[AVProMovieCapture] Capturing audio from Unity without an UnityAudioCapture assigned so we had to create one manually (very slow).  Consider adding a UnityAudioCapture component to your scene and assigned it to this MovieCapture component.");
+						}
+						#endif
 					}
 				}
 				else
 				{
 					if (logWarnings)
 					{
-						Debug.LogWarning("[AVProMovieCapture] No audio listener found in scene.  Unable to capture audio from Unity.");
+						Debug.LogWarning("[AVProMovieCapture] Capturing audio from Unity without an UnityAudioCapture assigned so we had to search for one manually (very slow)");
 					}
-				}
-			}
-			else
-			{
-				if (logWarnings)
-				{
-					Debug.LogWarning("[AVProMovieCapture] Capturing audio from Unity without an UnityAudioCapture assigned so we had to search for one manually (very slow)");
 				}
 			}
 			return result;
@@ -1460,11 +1553,21 @@ namespace RenderHeads.Media.AVProMovieCapture
 			else
 			{
 				// Disable vsync
-				if (_allowVSyncDisable && !Screen.fullScreen && QualitySettings.vSyncCount > 0)
-				{
-					_oldVSyncCount = QualitySettings.vSyncCount;
-					QualitySettings.vSyncCount = 0;
-				}
+				#if !UNITY_EDITOR_OSX && UNITY_IOS
+					if (_allowVSyncDisable)
+					{
+						// iOS doesn't support disabling vsync so use _oldVsyncCount to store the current target framerate.
+						_oldVSyncCount = Application.targetFrameRate;
+						// We want to runs as fast as possible.
+						Application.targetFrameRate = 300;
+					}
+				#else
+					if (_allowVSyncDisable && !Screen.fullScreen && QualitySettings.vSyncCount > 0)
+					{
+						_oldVSyncCount = QualitySettings.vSyncCount;
+						QualitySettings.vSyncCount = 0;
+					}
+				#endif
 
 				if (_useMotionBlur && _motionBlurSamples > 1)
 				{
@@ -1532,32 +1635,63 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 			// Resolve desired audio source
 			_stats.AudioCaptureSource = AudioCaptureSource.None;
-			if (_audioCaptureSource != AudioCaptureSource.None && _outputTarget == OutputTarget.VideoFile && _isRealTime)
+			if (_audioCaptureSource != AudioCaptureSource.None && _outputTarget == OutputTarget.VideoFile)
 			{
-				if (_audioCaptureSource == AudioCaptureSource.Microphone)
+				if (_audioCaptureSource == AudioCaptureSource.Microphone && _isRealTime)
 				{
 					if (_selectedAudioInputDevice != null)
 					{
 						_stats.AudioCaptureSource = AudioCaptureSource.Microphone;
 					}
+					else
+					{
+						Debug.LogWarning("[AVProMovieCapture] No microphone found");
+					}
 				}
 				else if (_audioCaptureSource == AudioCaptureSource.Unity)
 				{
+					// If there is already a capture component, make sure it's the right one otherwise remove it
+					if (_unityAudioCapture != null)
+					{
+						bool removeComponent = false;
+						if (_isRealTime)
+						{
+							removeComponent = !(_unityAudioCapture is CaptureAudioFromAudioListener);
+						}
+						else
+						{
+							removeComponent = (_unityAudioCapture is CaptureAudioFromAudioListener);
+						}
+
+						if (removeComponent)
+						{
+							Destroy(_unityAudioCapture);
+							_unityAudioCapture = null;
+						}
+					}
+
 					// We if try to capture audio from Unity but there isn't an UnityAudioCapture component set
 					if (_unityAudioCapture == null)
 					{
-						_unityAudioCapture = FindOrCreateAudioCapture(true);
+						_unityAudioCapture = FindOrCreateUnityAudioCapture(true);
 					}
 					if (_unityAudioCapture != null)
 					{
-						if (!_unityAudioCapture.enabled)
-						{
-							_unityAudioCapture.enabled = true;
-						}
+						_unityAudioCapture.PrepareCapture();
 						_stats.UnityAudioSampleRate = AudioSettings.outputSampleRate;
-						_stats.UnityAudioChannelCount = _unityAudioCapture.NumChannels;
+						_stats.UnityAudioChannelCount = _unityAudioCapture.ChannelCount;
 						_stats.AudioCaptureSource = AudioCaptureSource.Unity;
 					}
+					else
+					{
+						Debug.LogWarning("[AVProMovieCapture] Unable to create AudioCapture component");
+					}
+				}
+				else if (_audioCaptureSource == AudioCaptureSource.Manual)
+				{
+					_stats.UnityAudioSampleRate = _manualAudioSampleRate;
+					_stats.UnityAudioChannelCount = _manualAudioChannelCount;
+					_stats.AudioCaptureSource = AudioCaptureSource.Manual;
 				}
 			}
 
@@ -1577,6 +1711,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 						else if (_audioCaptureSource == AudioCaptureSource.Unity)
 						{
 							info += string.Format(" audio source:'Unity' {0}hz {1} channels", _stats.UnityAudioSampleRate, _stats.UnityAudioChannelCount);
+						}
+						else if (_audioCaptureSource == AudioCaptureSource.Manual)
+						{
+							info += string.Format(" audio source:'Manual' {0}hz {1} channels", _stats.UnityAudioSampleRate, _stats.UnityAudioChannelCount);
 						}
 						if (_selectedAudioCodec != null)
 						{
@@ -1611,7 +1749,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				bool useRealtimeClock = (_isRealTime && _timelapseScale <= 1);
 				_handle = NativePlugin.CreateRecorderVideo(_filePath, (uint)_targetWidth, (uint)_targetHeight, _frameRate, (int)_pixelFormat, useRealtimeClock, _isTopDown,
 																	_selectedVideoCodec.Index, _stats.AudioCaptureSource, _stats.UnityAudioSampleRate,
-																	_stats.UnityAudioChannelCount, (_selectedAudioInputDevice != null)?_selectedAudioInputDevice.Index:-1, 
+																	_stats.UnityAudioChannelCount, (_selectedAudioInputDevice != null)?_selectedAudioInputDevice.Index:-1,
 																	(_selectedAudioCodec != null)?_selectedAudioCodec.Index:-1,	_forceGpuFlush, GetEncoderHints().videoHints);
 			}
 			else if (_outputTarget == OutputTarget.ImageSequence)
@@ -1751,7 +1889,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			{
 				if (IsUsingUnityAudio())
 				{
-					_unityAudioCapture.FlushBuffer();
+					_unityAudioCapture.StartCapture();
 				}
 
 				if (!NativePlugin.Start(_handle))
@@ -1770,6 +1908,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 				if (!_isRealTime && _timelineController != null)
 				{
 					_timelineController.StartCapture();
+				}
+				#endif
+				#if AVPRO_MOVIECAPTURE_VIDEOPLAYER_SUPPORT
+				if (!_isRealTime && _videoPlayerController != null)
+				{
+					_videoPlayerController.StartCapture();
 				}
 				#endif
 
@@ -1890,43 +2034,68 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 
 			bool applyPostOperations = false;
+			FileWritingHandler fileWritingHandler = null;
 			if (_handle >= 0)
 			{
 				NativePlugin.Stop(_handle, skipPendingFrames);
 
+				if (_outputTarget == OutputTarget.VideoFile)
+				{
+					applyPostOperations = true;
+				}
+
+				fileWritingHandler = new FileWritingHandler(_filePath, _handle);
+
 				// Free the recorder, or if the file is still being written, store the action to be invoked where it is complete
-				if (ignorePendingFileWrites || NativePlugin.IsFileWritingComplete(_handle))
+				bool canFreeRecorder = (ignorePendingFileWrites || NativePlugin.IsFileWritingComplete(_handle));
+
+				if (canFreeRecorder)
 				{
 					NativePlugin.FreeRecorder(_handle);
 					RenderThreadEvent(NativePlugin.PluginEvent.FreeResources);
 				}
 				else
 				{
-					if (_fileWritingAction == null)
+					// If no external action has been set up for the checking when the file writing begins and end,
+					// add it to an internal list so we can make sure it completes
+					if (_beginFinalFileWritingAction == null)
 					{
-						_pendingFileWrites.Add(new FileWritingHandler(this._filePath, _handle));
+						_pendingFileWrites.Add(fileWritingHandler);
+					}
+
+					if (applyPostOperations && CanApplyPostOperations(_filePath))
+					{
+						fileWritingHandler.AddPostOperation(GetEncoderHints().videoHints);
+						applyPostOperations = false;
 					}
 				}
-				if (_fileWritingAction != null)
+
+				// If there is an external action set up, then notify it that writing has begun
+				if (_beginFinalFileWritingAction != null)
 				{
-					_fileWritingAction.Invoke(new FileWritingHandler(this._filePath, _handle));
+					_beginFinalFileWritingAction.Invoke(fileWritingHandler);
 				}
+
 				_handle = -1;
 
 				// Save the last captured path
-				if (!skipPendingFrames && !string.IsNullOrEmpty(_filePath))
+				if (!string.IsNullOrEmpty(_filePath))
 				{
 					if (_outputTarget == OutputTarget.VideoFile)
 					{
 						LastFileSaved = _filePath;
-						applyPostOperations = true;
 					}
 					else if (_outputTarget == OutputTarget.ImageSequence)
 					{
 						LastFileSaved = System.IO.Path.GetDirectoryName(_filePath);
 					}
 				}
-
+				#if AVPRO_MOVIECAPTURE_VIDEOPLAYER_SUPPORT
+				if (_videoPlayerController != null)
+				{
+					_videoPlayerController.StopCapture();
+				}
+				#endif
 				#if AVPRO_MOVIECAPTURE_PLAYABLES_SUPPORT
 				if (_timelineController != null)
 				{
@@ -1939,9 +2108,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 			if (_unityAudioCapture)
 			{
-				_unityAudioCapture.enabled = false;
+				_unityAudioCapture.StopCapture();
 			}
-
 			if (_motionBlur)
 			{
 				_motionBlur.enabled = false;
@@ -1958,11 +2126,20 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 			_oldFixedDeltaTime = 0f;
 
-			if (_oldVSyncCount > 0)
-			{
-				QualitySettings.vSyncCount = _oldVSyncCount;
-				_oldVSyncCount = 0;
-			}
+			#if !UNITY_EDITOR_OSX && UNITY_IOS
+				// iOS doesn't support disabling vsync so _oldVsyncCount is actually the target framerate before we started capturing.
+				if (_oldVSyncCount != 0)
+				{
+					Application.targetFrameRate = _oldVSyncCount;
+					_oldVSyncCount = 0;
+				}
+			#else
+				if (_oldVSyncCount > 0)
+				{
+					QualitySettings.vSyncCount = _oldVSyncCount;
+					_oldVSyncCount = 0;
+				}
+			#endif
 
 			_motionBlur = null;
 
@@ -1978,14 +2155,25 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 		}
 
-		protected void ApplyPostOperations(string path)
+		private bool CanApplyPostOperations(string filePath)
 		{
-#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && UNITY_STANDALONE_WIN)
-			if (GetEncoderHints().videoHints.allowFastStartStreamingPostProcess && HasExtension(path, ".mp4"))
+			bool result = false;
+			#if UNITY_EDITOR_WIN || (!UNITY_EDITOR && UNITY_STANDALONE_WIN)
+			if (GetEncoderHints().videoHints.allowFastStartStreamingPostProcess && HasExtension(filePath, ".mp4"))
+			{
+				result = true;
+			}
+			#endif
+			return result;
+		}
+
+		protected void ApplyPostOperations(string filePath)
+		{
+			if (CanApplyPostOperations(filePath))
 			{
 				try
 				{
-					if (!MP4FileProcessing.ApplyFastStart(path, false))
+					if (!MP4FileProcessing.ApplyFastStart(filePath, false))
 					/*MP4FileProcessing.Options options = new MP4FileProcessing.Options();
 					options.applyFastStart = true;
 					options.applyStereoMode = false;
@@ -2000,7 +2188,6 @@ namespace RenderHeads.Media.AVProMovieCapture
 					Debug.LogException(e);
 				}
 			}
-#endif
 		}
 
 		private void ToggleCapture()
@@ -2033,6 +2220,19 @@ namespace RenderHeads.Media.AVProMovieCapture
 			return result;
 		}
 
+		protected bool CanContinue()
+		{
+			bool result = true;
+			#if AVPRO_MOVIECAPTURE_VIDEOPLAYER_SUPPORT
+			if (IsCapturing() && !IsPaused() && !_isRealTime && _videoPlayerController != null)
+			{
+				result = _videoPlayerController.CanContinue();
+				//Debug.Log(result);
+			}
+			#endif
+			return result;
+		}
+
 		private void LateUpdate()
 		{
 			if (_handle >= 0 && !_paused)
@@ -2040,38 +2240,52 @@ namespace RenderHeads.Media.AVProMovieCapture
 				CheckFreeDiskSpace();
 			}
 
-			// Resume capture if a start delay has been specified
-			if (IsCapturing() && IsPaused() && _stats.NumEncodedFrames == 0)
+			if (_captureKey != KeyCode.None)
 			{
-				float delta = 0f;
-				if (_startDelay == StartDelayMode.GameSeconds)
+				if (Input.GetKeyDown(_captureKey))
 				{
-					delta = Time.deltaTime;
-				}
-				else if (_startDelay == StartDelayMode.RealSeconds)
-				{
-					delta = Time.unscaledDeltaTime;
-				}
-				if (delta > 0f)
-				{
-					_startDelayTimer += delta;
-					if (IsStartDelayComplete())
-					{
-						ResumeCapture();
-					}
+					ToggleCapture();
 				}
 			}
 
 			RemoveCompletedFileWrites();
 
-			#if AVPRO_MOVIECAPTURE_PLAYABLES_SUPPORT
-			if (IsCapturing() && !IsPaused() && !_isRealTime && _timelineController != null)
+			if (_frameUpdateMode == FrameUpdateMode.Automatic)
 			{
-				_timelineController.UpdateFrame();
-			}
-			#endif
+				// Resume capture if a start delay has been specified
+				if (IsCapturing() && IsPaused() && _stats.NumEncodedFrames == 0)
+				{
+					float delta = 0f;
+					if (_startDelay == StartDelayMode.GameSeconds)
+					{
+						if (!_isRealTime)
+						{
+							// In offline render mode Time.deltaTime is always zero due Time.timeScale being set to zero, 
+							// so just use the real world time
+							delta = Time.unscaledDeltaTime;
+						}
+						else
+						{
+							delta = Time.deltaTime;
+						}
+					}
+					else if (_startDelay == StartDelayMode.RealSeconds)
+					{
+						delta = Time.unscaledDeltaTime;
+					}
+					if (delta > 0f)
+					{
+						_startDelayTimer += delta;
+						if (IsStartDelayComplete())
+						{
+							ResumeCapture();
+						}
+					}
+				}
 
-			UpdateFrame();
+				PreUpdateFrame();
+				UpdateFrame();
+			}
 		}
 
 		private void RemoveCompletedFileWrites()
@@ -2188,7 +2402,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				}
 				else
 				{
-					const int WatchDogLimit = 100;
+					const int WatchDogLimit = 1000;
 					int watchdog = 0;
 					if (_outputTarget != OutputTarget.NamedPipe)
 					{
@@ -2210,7 +2424,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		protected void TickFrameTimer()
 		{
-			_timeSinceLastFrame += Time.unscaledDeltaTime;
+			_timeSinceLastFrame += Time.deltaTime;//unscaledDeltaTime;
 		}
 
 		protected void RenormTimer()
@@ -2229,7 +2443,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		protected void EncodeUnityAudio()
 		{
-			if (IsRecordingUnityAudio())
+			if (IsUsingUnityAudio())
 			{
 				int audioDataLength = 0;
 				System.IntPtr audioDataPtr = _unityAudioCapture.ReadData(out audioDataLength);
@@ -2240,13 +2454,42 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 		}
 
+		public void EncodeAudio(float[] audioData)
+		{
+			if (audioData.Length > 0)
+			{
+				int byteCount = Marshal.SizeOf(audioData[0]) * audioData.Length;
+
+				// Copy the array to unmanaged memory.
+				System.IntPtr pointer = Marshal.AllocHGlobal(byteCount);
+				Marshal.Copy(audioData, 0, pointer, audioData.Length);
+
+				// Encode
+				NativePlugin.EncodeAudio(_handle, pointer, (uint)audioData.Length);
+
+				// Free the unmanaged memory.
+				Marshal.FreeHGlobal(pointer);
+			}
+		}
+
+		public virtual void PreUpdateFrame()
+		{
+			#if AVPRO_MOVIECAPTURE_PLAYABLES_SUPPORT
+			if (IsCapturing() && !IsPaused() && !_isRealTime && _timelineController != null)
+			{
+				_timelineController.UpdateFrame();
+			}
+			#endif
+			#if AVPRO_MOVIECAPTURE_VIDEOPLAYER_SUPPORT
+			if (IsCapturing() && !IsPaused() && !_isRealTime && _videoPlayerController != null)
+			{
+				_videoPlayerController.UpdateFrame();
+			}
+			#endif
+		}
+
 		public virtual void UpdateFrame()
 		{
-			if (Input.GetKeyDown(_captureKey))
-			{
-				ToggleCapture();
-			}
-
 			if (_handle >= 0 && !_paused)
 			{
 				_stats.NumDroppedFrames = NativePlugin.GetNumDroppedFrames(_handle);
@@ -2304,11 +2547,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 			if (aaLevel != 1)
 			{
-				if (camera.actualRenderingPath == RenderingPath.DeferredLighting
-#if AVPRO_MOVIECAPTURE_DEFERREDSHADING
-					|| camera.actualRenderingPath == RenderingPath.DeferredShading
-#endif
-					)
+				if (camera.actualRenderingPath == RenderingPath.DeferredLighting || camera.actualRenderingPath == RenderingPath.DeferredShading)
 				{
 					Debug.LogWarning("[AVProMovieCapture] Not using antialiasing because MSAA is not supported by camera render path " + camera.actualRenderingPath);
 					aaLevel = 1;

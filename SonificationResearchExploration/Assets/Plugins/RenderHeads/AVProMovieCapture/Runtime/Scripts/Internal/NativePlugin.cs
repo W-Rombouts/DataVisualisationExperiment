@@ -17,6 +17,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 		None = 0,
 		Unity = 1,
 		Microphone = 2,
+		Manual = 3,
 	}
 
 	public enum StereoPacking
@@ -101,11 +102,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 			YCbCr422_HDYC,
 		}
 
-		public const string ScriptVersion = "4.3.3";
+		public const string ScriptVersion = "4.4.5";
 #if UNITY_EDITOR_OSX || (!UNITY_EDITOR && (UNITY_STANDALONE_OSX || UNITY_IOS))
-		public const string ExpectedPluginVersion = "4.3.3";
+		public const string ExpectedPluginVersion = "4.4.5";
 #else
-		public const string ExpectedPluginVersion = "4.3.0";
+		public const string ExpectedPluginVersion = "4.4.5";
 #endif
 
 		public const int MaxRenderWidth = 16384;
@@ -218,9 +219,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 		}
 
+		static LogCallbackDelegate callbackDelegate;
+
 		private static void SetupDebugLogCallback()
 		{
-			LogCallbackDelegate callbackDelegate = new LogCallbackDelegate(LogCallback);
+			callbackDelegate = new LogCallbackDelegate(LogCallback);
 			System.IntPtr func = Marshal.GetFunctionPointerForDelegate(callbackDelegate);
 			NativePlugin.SetLogFunction(func);
 		}
@@ -232,10 +235,12 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		static NativePlugin()
 		{
-			SetupDebugLogCallback();
-#if !UNITY_EDITOR_OSX && UNITY_IOS
-			NativePlugin.MCUnityRegisterPlugin();
-#endif
+			#if UNITY_EDITOR_OSX
+				SetupDebugLogCallback();
+			#endif
+			#if !UNITY_EDITOR_OSX && UNITY_IOS
+				NativePlugin.MCUnityRegisterPlugin();
+			#endif
 		}
 #endif
 
@@ -408,6 +413,13 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 		[DllImport(PluginName)]
 		public static extern void SetTexturePointer(int handle, System.IntPtr texture);
+
+		#if false
+
+		[DllImport(PluginName)]
+		public static extern void SetColourBuffer(int handle, System.IntPtr buffer);
+
+		#endif
 
 		//////////////////////////////////////////////////////////////////////////
 		// Destroy recorder

@@ -1,3 +1,7 @@
+#if UNITY_2017_3_OR_NEWER
+	#define AVPRO_MOVIECAPTURE_OFFLINE_AUDIOCAPTURE
+#endif
+
 using UnityEngine;
 using System.Text;
 using System.Collections;
@@ -144,7 +148,13 @@ namespace RenderHeads.Media.AVProMovieCapture
 		{
 			GUI.skin = _guiSkin;
 			GUI.depth = -10;
-			GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(Screen.width / 1920f * 1.5f, Screen.height / 1080f * 1.5f, 1f));
+
+		#if UNITY_IOS && !UNITY_EDITOR_OSX
+			float sf = 1.0f;
+		#else
+			float sf = 1.5f;
+		#endif
+			GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(Screen.width / 1920f * sf, Screen.height / 1080f * sf, 1f));
 
 			if (_showUI)
 			{
@@ -320,18 +330,17 @@ namespace RenderHeads.Media.AVProMovieCapture
 					GUILayout.Space(16f);
 
 
-					GUI.enabled = _movieCapture.IsRealTime;
-
 					GUILayout.BeginHorizontal();
 					GUILayout.Label("Audio Source:", GUILayout.ExpandWidth(false));
-					_movieCapture.AudioCaptureSource = (AudioCaptureSource)GUILayout.SelectionGrid((int)_movieCapture.AudioCaptureSource, new string[] { "None", "Unity", "Microphone" }, 3);
+					_movieCapture.AudioCaptureSource = (AudioCaptureSource)GUILayout.SelectionGrid((int)_movieCapture.AudioCaptureSource, new string[] { "None", "Unity", "Microphone", "Manual" }, 4);
 					GUILayout.EndHorizontal();
 					GUILayout.Space(16f);
 
-					if (GUI.enabled)
-					{
-						GUI.enabled = (_movieCapture.AudioCaptureSource != AudioCaptureSource.None);
-					}
+					GUI.enabled = (_movieCapture.IsRealTime || _movieCapture.AudioCaptureSource == AudioCaptureSource.Manual
+							#if AVPRO_MOVIECAPTURE_OFFLINE_AUDIOCAPTURE
+								|| _movieCapture.AudioCaptureSource == AudioCaptureSource.Unity
+							#endif
+								);
 
 					if (_movieCapture.AudioCaptureSource == AudioCaptureSource.Microphone && _audioDeviceNames != null)
 					{
@@ -351,11 +360,11 @@ namespace RenderHeads.Media.AVProMovieCapture
 								_shownSection = Section.None;
 							}
 						}
-						
+
 						if (_movieCapture.ForceAudioInputDeviceIndex >= 0 && _movieCapture.ForceAudioInputDeviceIndex < _audioDeviceNames.Length)
 						{
 							GUILayout.Label("Using Microphone: " + _audioDeviceNames[_movieCapture.ForceAudioInputDeviceIndex]);
-						}						
+						}
 						GUILayout.EndHorizontal();
 
 						if (_shownSection == Section.AudioInputDevices)
@@ -377,8 +386,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 								_shownSection = Section.None;
 							}
 						}
+						GUILayout.Space(16f);
 					}
-					GUILayout.Space(16f);
 					if (_movieCapture.AudioCaptureSource != AudioCaptureSource.None)
 					{
 						// Audio Codec
@@ -537,7 +546,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 						if (GUILayout.Button("Resume Capture"))
 						{
 							ResumeCapture();
-						}					
+						}
 					}
 
 					if (GUILayout.Button("Cancel Capture"))
@@ -577,7 +586,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 							Utils.OpenInDefaultApp(CaptureBase.LastFileSaved);
 						}
 						GUI.color = prevColor;
-						
+
 						GUILayout.EndHorizontal();
 					}
 				}
@@ -589,8 +598,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 		private void GUI_RecordingStatus()
 		{
 			GUILayout.Space(8.0f);
-			GUILayout.Label("Output", "box");
-			GUILayout.BeginVertical("box");
+			DrawPauseResumeButtons();
+			GUILayout.Label("Output", GUI.skin.box);
+			GUILayout.BeginVertical(GUI.skin.box);
 
 			Texture texture = _movieCapture.GetPreviewTexture();
 			if (texture != null)
@@ -605,10 +615,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 				GUILayout.EndHorizontal();
 			}
 
-			GUILayout.Label(System.IO.Path.GetFileName(_movieCapture.LastFilePath), "box");
+			GUILayout.Label(System.IO.Path.GetFileName(_movieCapture.LastFilePath), GUI.skin.box);
 			GUILayout.Space(8.0f);
 
-			GUILayout.Label("Video", "box");
+			GUILayout.Label("Video", GUI.skin.box);
 			DrawGuiField("Dimensions", _movieCapture.GetRecordingWidth() + "x" + _movieCapture.GetRecordingHeight() + " @ " + _movieCapture.FrameRate.ToString("F2") + "hz");
 			if (_movieCapture.OutputTarget == OutputTarget.VideoFile)
 			{
@@ -623,7 +633,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			{
 				if (_movieCapture.CaptureStats.AudioCaptureSource != AudioCaptureSource.None)
 				{
-					GUILayout.Label("Audio", "box");
+					GUILayout.Label("Audio", GUI.skin.box);
 					if (_movieCapture.AudioCaptureSource == AudioCaptureSource.Unity)
 					{
 						DrawGuiField("Source", "Unity");
@@ -643,10 +653,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 
 			GUILayout.EndVertical();
 
-			GUILayout.Space(8.0f);	
+			GUILayout.Space(8.0f);
 
-			GUILayout.Label("Stats", "box");
-			GUILayout.BeginVertical("box");
+			GUILayout.Label("Stats", GUI.skin.box);
+			GUILayout.BeginVertical(GUI.skin.box);
 
 			if (_movieCapture.CaptureStats.FPS > 0f)
 			{
@@ -677,7 +687,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			DrawGuiField("File Size", ((float)_lastFileSize / (1024f * 1024f)).ToString("F1") + "MB");
 			DrawGuiField("Video Length", _lastEncodedMinutes.ToString("00") + ":" + _lastEncodedSeconds.ToString("00") + "." + _lastEncodedFrame.ToString("000"));
 
-			GUILayout.Label("Dropped Frames", "box");
+			GUILayout.Label("Dropped Frames", GUI.skin.box);
 			DrawGuiField("In Unity", _movieCapture.CaptureStats.NumDroppedFrames.ToString());
 			DrawGuiField("In Encoder ", _movieCapture.CaptureStats.NumDroppedEncoderFrames.ToString());
 			if (_movieCapture.CaptureStats.AudioCaptureSource != AudioCaptureSource.None)
@@ -689,7 +699,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 
 			GUILayout.EndVertical();
+		}
 
+		private void DrawPauseResumeButtons()
+		{
 			GUILayout.BeginHorizontal();
 
 			if (!_movieCapture.IsPaused())

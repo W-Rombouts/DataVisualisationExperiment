@@ -40,6 +40,96 @@ namespace RenderHeads.Media.AVProMovieCapture
 			return result;
 		}
 
+		public static bool HasAlphaChannel(RenderTextureFormat format)
+		{
+			bool result = false;
+			switch (format)
+			{
+				case RenderTextureFormat.ARGB32:
+				case RenderTextureFormat.BGRA32:
+				case RenderTextureFormat.ARGB4444:
+				case RenderTextureFormat.ARGB1555:
+				case RenderTextureFormat.ARGB2101010:
+				case RenderTextureFormat.ARGB64:
+				case RenderTextureFormat.RGBAUShort:
+				case RenderTextureFormat.ARGBInt:
+				case RenderTextureFormat.ARGBFloat:
+				case RenderTextureFormat.ARGBHalf:
+				#if UNITY_2017_2_OR_NEWER
+				case RenderTextureFormat.BGRA10101010_XR:
+				#endif
+					result = true;
+					break;
+			}
+			return result;
+		}
+
+		public static RenderTextureFormat GetBestRenderTextureFormat(bool supportHDR, bool supportTransparency, bool favourSpeedOverQuality)
+		{
+			RenderTextureFormat result = RenderTextureFormat.Default;
+			if (supportTransparency)
+			{
+				if (supportHDR)
+				{
+					// HDR Transparent
+					result = RenderTextureFormat.DefaultHDR;
+					if (favourSpeedOverQuality)
+					{
+						#if UNITY_2017_2_OR_NEWER
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.BGRA10101010_XR)) return RenderTextureFormat.BGRA10101010_XR;
+						#endif
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf)) return RenderTextureFormat.ARGBHalf;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat)) return RenderTextureFormat.ARGBFloat;
+					}
+					else
+					{
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat)) return RenderTextureFormat.ARGBFloat;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf)) return RenderTextureFormat.ARGBHalf;
+						#if UNITY_2017_2_OR_NEWER
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.BGRA10101010_XR)) return RenderTextureFormat.BGRA10101010_XR;
+						#endif
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB64)) return RenderTextureFormat.ARGB64;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010)) return RenderTextureFormat.ARGB2101010;
+					}
+				}
+				else	
+				{
+					// SDR Transparent
+					if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB32)) return RenderTextureFormat.ARGB32;
+					if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.BGRA32)) return RenderTextureFormat.BGRA32;
+				}
+			}
+			else
+			{
+				if (supportHDR)
+				{
+					// HDR non-transparent
+					result = RenderTextureFormat.DefaultHDR;
+					/*if (favourSpeedOverQuality)
+					{
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float)) return RenderTextureFormat.RGB111110Float;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010)) return RenderTextureFormat.ARGB2101010;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf)) return RenderTextureFormat.ARGBHalf;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat)) return RenderTextureFormat.ARGBFloat;
+					}
+					else
+					{
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBFloat)) return RenderTextureFormat.ARGBFloat;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf)) return RenderTextureFormat.ARGBHalf;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGB2101010)) return RenderTextureFormat.ARGB2101010;
+						if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.RGB111110Float)) return RenderTextureFormat.RGB111110Float;
+					}*/
+				}
+			}
+
+			if (!SystemInfo.SupportsRenderTextureFormat(result))
+			{
+				UnityEngine.Debug.LogError("[AVProMovieCapture] Couldn't find suitable texture format " + result + " for " + supportHDR +  " " +  supportTransparency + " " + favourSpeedOverQuality);
+			}
+
+			return result;
+		}
+		
 		/// <summary>
 		/// The "main" camera isn't necessarily the one the gets rendered last to screen,
 		/// so we sort all cameras by depth and find the one with no render target

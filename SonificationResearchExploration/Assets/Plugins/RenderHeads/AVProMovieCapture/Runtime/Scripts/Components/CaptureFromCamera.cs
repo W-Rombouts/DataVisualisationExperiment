@@ -1,9 +1,3 @@
-#if UNITY_5_4_OR_NEWER || UNITY_5
-	#define AVPRO_MOVIECAPTURE_DEFERREDSHADING
-#endif
-#if UNITY_5_4_OR_NEWER
-	#define AVPRO_MOVIECAPTURE_RENDERTEXTUREBGRA32_54
-#endif
 #if UNITY_EDITOR && !UNITY_2018_3_OR_NEWER
 	#define SUPPORT_SCENE_VIEW_GIZMOS_CAPTURE
 #endif
@@ -79,16 +73,14 @@ namespace RenderHeads.Media.AVProMovieCapture
 			if (texture is RenderTexture)
 			{
 				RenderTexture rt = texture as RenderTexture;
-				
+
 				// Linear textures require resolving to sRGB
 				result = !rt.sRGB;
 
 				if (!result &&
 					(rt.format != RenderTextureFormat.ARGB32) &&
-					(rt.format != RenderTextureFormat.Default)
-#if AVPRO_MOVIECAPTURE_RENDERTEXTUREBGRA32_54
-					&& (rt.format != RenderTextureFormat.BGRA32)
-#endif
+					(rt.format != RenderTextureFormat.Default) &&
+					(rt.format != RenderTextureFormat.BGRA32)
 					)
 				{
 					// Exotic texture formats require resolving
@@ -104,7 +96,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			//result = false;
 
 			return result;
-		}		
+		}
 
 		private bool HasCamera()
 		{
@@ -143,15 +135,40 @@ namespace RenderHeads.Media.AVProMovieCapture
 			}
 		}
 
+#if EXPERIMENTAL_FRAME_PAUSE
+		private bool _stillBusy = false;
+
+		private IEnumerator FinalRenderCapture()
+		{
+			if (_stillBusy)
+			{
+				yield return null;
+			}
+			else
+			{
+				_stillBusy = true;
+
+				Time.timeScale = 0.0f;
+				yield return new WaitUntil(CanContinue);
+				Time.timeScale = 1.0f;
+
+				yield return _waitForEndOfFrame;
+				yield return Capture();
+
+				_stillBusy = false;
+			}
+		}
+#else
 		private IEnumerator FinalRenderCapture()
 		{
 			yield return _waitForEndOfFrame;
-			Capture();
+			yield return Capture();
 		}
+#endif
 
 		// If we're forcing a resolution or AA change then we have to render the camera again to the new target
 		// If we try to just set the targetTexture of the camera and grab it in OnRenderImage we can't render it to the screen as before :(
-		private void Capture()
+		public IEnumerator Capture()
 		{
 			TickFrameTimer();
 
@@ -229,6 +246,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 			base.UpdateFrame();
 
 			RenormTimer();
+
+			yield break;
 		}
 
 		private bool RequiresHDR()
@@ -237,7 +256,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 			bool result = _lastCamera.allowHDR;
 
 			if (!result && HasContributingCameras())
-			{			
+			{
 				for (int cameraIndex = 0; cameraIndex < _contribCameras.Length; cameraIndex++)
 				{
 					Camera camera = _contribCameras[cameraIndex];
@@ -283,7 +302,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				_lastCamera.rect = new Rect(0f, 0f, 1f, 1f);
 				_lastCamera.targetTexture = _target;
 				_lastCamera.Render();
-				
+
 				// Restore camera
 				{
 					_lastCamera.rect = prevRect;
@@ -368,7 +387,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 					GL.IssuePluginEvent(NativePlugin.PluginID | (int)NativePlugin.PluginEvent.CaptureFrameBuffer | _handle);
 	#endif
 					GL.InvalidateState();
-					
+
 					UpdateFPS();
 
 					return;
@@ -393,6 +412,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 				_target.DiscardContents();
 			}
 
+			_targetNativePointer = System.IntPtr.Zero;
+			_targetNativeTexture = null;
 			_previewTexture = null;
 
 			base.UnprepareCapture();
@@ -413,6 +434,10 @@ namespace RenderHeads.Media.AVProMovieCapture
 			{
 				_resolveTexture = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
 				_resolveTexture.Create();
+			}
+
+			if (_resolveTexture != null)
+			{
 				_targetNativePointer = _resolveTexture.GetNativeTexturePtr();
 				_targetNativeTexture = _resolveTexture;
 			}
@@ -457,7 +482,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 						SetCamera(_cameraSelector.Camera, _useContributingCameras);
 					}
 				}
-				
+
 				if (!HasCamera())
 				{
 					SetCamera(this.GetComponent<Camera>(), _useContributingCameras);
@@ -507,16 +532,17 @@ namespace RenderHeads.Media.AVProMovieCapture
 						_target = null;
 					}
 				}
+
 				if (_target == null)
 				{
-					RenderTextureFormat textureFormat = RenderTextureFormat.Default;
-					if (RequiresHDR())
-					{
-						textureFormat = RenderTextureFormat.DefaultHDR;
-					}
+					RenderTextureFormat textureFormat = Utils.GetBestRenderTextureFormat(RequiresHDR(), _supportTransparency, IsRealTime);
 					_target = RenderTexture.GetTemporary(width, height, 24, textureFormat, RenderTextureReadWrite.Default, aaLevel);
 					_target.name = "[AVProMovieCapture] Camera Target";
 					_target.Create();
+				}
+
+				if (_target != null)
+				{
 					_targetNativePointer = _target.GetNativeTexturePtr();
 					_targetNativeTexture = _target;
 				}
@@ -551,7 +577,7 @@ namespace RenderHeads.Media.AVProMovieCapture
 				RenderTexture.ReleaseTemporary(_resolveTexture);
 				_resolveTexture = null;
 			}
-						
+
 			if (_target != null)
 			{
 				_targetNativePointer = System.IntPtr.Zero;

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 //-----------------------------------------------------------------------------
 // Copyright 2012-2020 RenderHeads Ltd.  All rights reserved.
@@ -11,6 +12,8 @@ namespace RenderHeads.Media.AVProMovieCapture
 	{
 		private string _path;
 		private int _handle;
+		private VideoEncoderHints _videoEncodingHints;
+		private ManualResetEvent _postProcessEvent;
 
 		public string Path
 		{
@@ -23,6 +26,25 @@ namespace RenderHeads.Media.AVProMovieCapture
 			_handle = handle;
 		}
 
+		internal void AddPostOperation(VideoEncoderHints videoEncodingHints)
+		{
+			_videoEncodingHints = videoEncodingHints;
+		}
+
+		private bool StartPostProcess()
+		{
+			UnityEngine.Debug.Assert(_postProcessEvent == null);
+			if (_videoEncodingHints.allowFastStartStreamingPostProcess)
+			{
+				_postProcessEvent = MP4FileProcessing.ApplyFastStartAsync(_path, false);
+				if (_postProcessEvent == null)
+				{
+					UnityEngine.Debug.LogWarning("[AVProMovieCapture] failed moving atom 'moov' to start of file for fast streaming");
+				}
+			}
+			return true;
+		}
+
 		public bool IsFileReady()
 		{
 			bool result = true;
@@ -31,7 +53,19 @@ namespace RenderHeads.Media.AVProMovieCapture
 				result = NativePlugin.IsFileWritingComplete(_handle);
 				if (result)
 				{
-					Dispose();
+					if (_videoEncodingHints != null)
+					{
+						result = StartPostProcess();
+						_videoEncodingHints = null;
+					}
+					if (_postProcessEvent != null)
+					{
+						result = _postProcessEvent.WaitOne(1);
+					}
+					if (result)
+					{
+						Dispose();
+					}
 				}
 			}
 			return result;
@@ -47,6 +81,9 @@ namespace RenderHeads.Media.AVProMovieCapture
 				// Issue the free resources plugin event
 				NativePlugin.RenderThreadEvent(NativePlugin.PluginEvent.FreeResources, -1);
 			}
+
+			_videoEncodingHints = null;
+			_postProcessEvent = null;
 		}
 
 		// Helper method for cleaning up a list
