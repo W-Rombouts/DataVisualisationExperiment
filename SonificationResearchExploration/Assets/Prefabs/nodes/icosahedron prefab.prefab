@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4737975624065702351}
   - component: {fileID: 2463665741055233323}
   - component: {fileID: -7517083293920852483}
+  - component: {fileID: -4814212154714692760}
   m_Layer: 0
   m_Name: icosahedron prefab
   m_TagString: Untagged
@@ -56,7 +57,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1000010248055316}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 10
   m_Type: 2
   m_Shape: 0
@@ -123,6 +124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flareMesh: {fileID: 23000010998583826}
+  nodeMesh: {fileID: 23000010267985122}
 --- !u!114 &-7517083293920852483
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -135,6 +137,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7a99aa237238774189c6d8870b7f08b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-4814212154714692760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000010248055316}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bdbd5af056acf14d895ee1c9f7a5395, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  connectedNodes: []
+  position: {x: 0, y: 0, z: 0}
+  velocity: {x: 0, y: 0, z: 0}
+  localDisableApplyForce: 0
+  radius: 20
 --- !u!1 &1000010699948564
 GameObject:
   m_ObjectHideFlags: 0

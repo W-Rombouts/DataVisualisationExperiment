@@ -58,6 +58,10 @@
       "type": "vector2"
     },
     {
+      "name": "/actions/default/in/",
+      "type": "boolean"
+    },
+    {
       "name": "/actions/default/out/Haptic",
       "type": "vibration"
     },
@@ -89,6 +93,18 @@
       "name": "/actions/mixedreality/in/ExternalCamera",
       "type": "pose",
       "requirement": "optional"
+    },
+    {
+      "name": "/actions/Questionnaire_Control/in/NextQuestion",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/Questionnaire_Control/in/SelectAnswer",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/Questionnaire_Control/in/InteractUI",
+      "type": "boolean"
     }
   ],
   "action_sets": [
@@ -106,6 +122,10 @@
     },
     {
       "name": "/actions/mixedreality",
+      "usage": "single"
+    },
+    {
+      "name": "/actions/Questionnaire_Control",
       "usage": "single"
     }
   ],

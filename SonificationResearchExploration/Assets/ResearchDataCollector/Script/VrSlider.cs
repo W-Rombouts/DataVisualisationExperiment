@@ -29,17 +29,17 @@ public class VrSlider : MonoBehaviour
         if (DragCube.transform.position != lastDragCubePostion)
         {
             float minToDragDistance;
-            float zPositionBox = DragCube.transform.position.z;
+            float zPositionBox = DragCube.transform.localPosition.z;
             minToDragDistance = Vector3.Distance(Min.transform.position, DragCube.transform.position);
             //Clamping the value's between min and max
             if (Vector3.Distance(Max.transform.position, DragCube.transform.position) > sliderWidth)
             {
-                zPositionBox = Min.transform.position.z;
+                zPositionBox = Min.transform.localPosition.z;
                 minToDragDistance = 0;
             }
             if (minToDragDistance > sliderWidth)
             {
-                zPositionBox = Max.transform.position.z;
+                zPositionBox = Max.transform.localPosition.z;
                 minToDragDistance = sliderWidth;
             }
             Box.transform.position = new Vector3(Box.transform.position.x, Box.transform.position.y, zPositionBox);

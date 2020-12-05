@@ -8,6 +8,7 @@ using Valve.VR;
 public class UpdateFlare : MonoBehaviour
 {
     public MeshRenderer flareMesh;
+    public MeshRenderer nodeMesh;
     private bool isFlareOn;
     private float counter;
     private float flareDuration = 1f;

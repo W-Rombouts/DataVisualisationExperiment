@@ -20,19 +20,19 @@ public class VRInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (SteamVR_Actions.default_InteractUI.GetStateUp(SteamVR_Input_Sources.RightHand))
+        if (SteamVR_Actions.Questionnaire_Control.SelectAnswer.GetStateUp(SteamVR_Input_Sources.RightHand))
         {
             hasShot = false;
             grabbedGameobject = null;
             isGrabbed = false;
            
         }
-        if (SteamVR_Actions.default_InteractUI.GetStateDown(SteamVR_Input_Sources.RightHand))
+        if (SteamVR_Actions.Questionnaire_Control.SelectAnswer.GetStateDown(SteamVR_Input_Sources.RightHand))
         {
             PushUiButton();
         }
 
-        if (SteamVR_Actions.default_InteractUI.GetStateUp(SteamVR_Input_Sources.RightHand))
+        if (SteamVR_Actions.Questionnaire_Control.NextQuestion.GetStateUp(SteamVR_Input_Sources.RightHand))
         {
             questionnaire.gameObject.SetActive(true);
             questionnaire.AskQuestion();

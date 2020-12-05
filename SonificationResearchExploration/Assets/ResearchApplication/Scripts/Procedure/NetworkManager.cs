@@ -15,31 +15,41 @@ public class NetworkManager : MonoBehaviour
     public bool isCone = false;
     public bool NetworkOnStart = true;
     public List<Graph> CurrentGraphs;
-    public Dictionary<Node,int> NodeReference = new Dictionary<Node, int>();
+    public Dictionary<Node, int> NodeReference = new Dictionary<Node, int>();
     public NetworkObjects NetworkObjectContainer;
     public GameObject EdgeObject;
     public GameObject NodeObject;
     public string dataPath = "Assets/ResearchApplication/Data/klmnetwork.xml";
     public int CustomNumberOfNodes = 0;
+    public int NumberOfLockedNodes = 1;
+    public List<GameObject> sortedList;
+    private Dictionary<GameObject, int> nodeBySize = new Dictionary<GameObject, int>();
+    private bool isSorted = true;
 
     float highestConnecitonCount = 132; //TODO: make variable
     float MinimumNodeSize = 0.25f;
-
-    private static NetworkManager _instance;
-    public  bool destroy;
+    public bool destroy;
     public bool loadAlternateNodeLayout;
-    public string AlternateNodePath= "NetworksJson/";
+    public string AlternateNodePath = "NetworksJson/";
 
-    public static NetworkManager Instance { get { return _instance; } }
+    [Header("NodeForce")]
+    public bool isApplyForce = false;
+    public float connNodeForce = 1f;
+    public float discNodeForce = 1f;
+    public float desiredConnectedNodeDistance = 1f;
+    bool isLoaded = false;
+    List<NodeInfo> nodeInfos = new List<NodeInfo>();
+
+    public static NetworkManager Instance { get; private set; }
     private void Awake()
     {
-        if (_instance != null && _instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(this.gameObject);
         }
         else
         {
-            _instance = this;
+            Instance = this;
         }
     }
 
@@ -60,7 +70,7 @@ public class NetworkManager : MonoBehaviour
         {
             DestroyNetwork();
         }
-      
+        _ = StartCoroutine("ApplyForceAsync");
     }
 
     private void LoadAlternateLayout(string alternateNodePath)
@@ -102,12 +112,12 @@ public class NetworkManager : MonoBehaviour
         {
             numberOfNodes = CustomNumberOfNodes;
         }
-       
+
         for (int i = 0; i < numberOfNodes; i++)
         {
 
 
-        
+
             Node node = graphs[0].nodes[i];
             if (node.incomingEdges.Count + node.outgoingEdges.Count > connectionCounter)
             {
@@ -130,6 +140,7 @@ public class NetworkManager : MonoBehaviour
                 else
                 {
                     postition = new Vector3(Mathf.Cos(i / numberOfNodes * 360) * 30, (numberConnections / highestConnecitonCount) * 15, Mathf.Sin(i / numberOfNodes * 360) * 30);
+                    Debug.Log(" position" + postition.x + "," + postition.y + "," + postition.z);
                 }
             }
 
@@ -137,9 +148,10 @@ public class NetworkManager : MonoBehaviour
             networkObjects.Add(nodeObject);
             nodeObject.gameObject.transform.localScale = nodeObject.gameObject.transform.localScale * ((numberConnections / highestConnecitonCount) + MinimumNodeSize);
             nodeObjects.Add(node, nodeObject);
-            
+
 
         }
+        int nodeCount = networkObjects.Count;
         //Debug.Log("number of connections" + connectionCounter);
         foreach (Edge edge in graphs[0].edges)
         {
@@ -148,8 +160,12 @@ public class NetworkManager : MonoBehaviour
             EdgeBehaviour edgeScript = edgeObject.GetComponent<EdgeBehaviour>();
             try
             {
-                edgeScript.leftNode = nodeObjects[edge.startNode];
-                edgeScript.rightNode = nodeObjects[edge.endNode]; 
+                GameObject leftNode = nodeObjects[edge.startNode];
+                GameObject rightNode = nodeObjects[edge.endNode];
+                leftNode.GetComponent<NodeInfo>().connectedNodes.Add(rightNode);
+                rightNode.GetComponent<NodeInfo>().connectedNodes.Add(leftNode);
+                edgeScript.leftNode = leftNode;
+                edgeScript.rightNode = rightNode;
                 lenghtCount += Vector3.Distance(edgeScript.leftNode.transform.position, edgeScript.rightNode.transform.position);
                 networkObjects.Add(edgeObject);
 
@@ -162,6 +178,7 @@ public class NetworkManager : MonoBehaviour
         NetworkObjects networkObjectContainer = new NetworkObjects();
         networkObjectContainer.networkObjects = networkObjects;
         networkObjectContainer.lenghtCount = lenghtCount;
+        networkObjectContainer.nodeCount = nodeCount;
         NetworkObjectContainer = networkObjectContainer;
         return networkObjectContainer;
     }
@@ -169,7 +186,13 @@ public class NetworkManager : MonoBehaviour
     public struct NetworkObjects
     {
         public List<GameObject> networkObjects;
+        public int nodeCount;
         public float lenghtCount;
+
+        public List<GameObject> GetNodes()
+        {
+            return networkObjects.GetRange(0, nodeCount);
+        }
     }
 
     public void DestroyNetwork()
@@ -178,14 +201,130 @@ public class NetworkManager : MonoBehaviour
         {
             Destroy(go);
         }
-        
+
     }
 
+
+    public void AddNodeToRanking(GameObject node, int connectionCount)
+    {
+        nodeBySize[node] = connectionCount;
+        if (NodeReference.Count == nodeBySize.Count)
+        {
+            isSorted = false;
+        }
+    }
 
 
     // Update is called once per frame
     void Update()
     {
+        if (!isSorted)
+        {
+            int[] countlist = new int[nodeBySize.Count];
+            int counter = 0;
+            foreach (var item in nodeBySize)
+            {
+                countlist[counter] = item.Value;
+                counter += 1;
+            }
+            Array.Sort(countlist);
+            Array.Reverse(countlist);
+            for (int i = 0; i < NumberOfLockedNodes; i++)
+            {
+                GameObject tempGO = nodeBySize.FirstOrDefault(x => x.Value == countlist[i]).Key;
+                sortedList.Add(tempGO);
+                nodeBySize.Remove(tempGO);
+            }
+            isSorted = true;
+        }
+        if (!isLoaded)
+        {
+            loadNodes();
+
+        }
+        else
+        {
+            if (isApplyForce)
+            {
+                
+                //isApplyForce = false;
+            }
+        }
+
+
+    }
+
+    private void loadNodes()
+    {
+        foreach (GameObject node in NetworkObjectContainer.GetNodes())
+        {
+            NodeInfo nodeInfo = node.GetComponent<NodeInfo>();
+            
+            nodeInfo.discNodes = NetworkObjectContainer.GetNodes().Except(nodeInfo.connectedNodes);
+            nodeInfos.Add(nodeInfo);
+
+        }
+        isLoaded = true;
+    }
+
+    IEnumerator ApplyForceAsync()
+    {
+        while (true)
+        {
+            foreach (NodeInfo nodeInfo in nodeInfos)
+            {
+                foreach (var connNode in nodeInfo.connectedNodes)
+                {
+                    Vector3 diffrence = nodeInfo.transform.position - connNode.transform.position;
+                    float distance = (diffrence).magnitude;
+                    float appliedForce = connNodeForce * Mathf.Log10(distance / desiredConnectedNodeDistance);
+                    nodeInfo.velocity -= appliedForce * Time.deltaTime * diffrence.normalized;
+                }
+                foreach (var discNode in nodeInfo.discNodes)
+                {
+                    Vector3 diffrence = nodeInfo.transform.position - discNode.transform.position;
+                    float distance = (diffrence).magnitude;
+                    if (distance != 0)
+                    {
+                        float appliedForce = discNodeForce / Mathf.Pow(distance, 2f);
+                        nodeInfo.velocity += appliedForce * Time.deltaTime * diffrence.normalized;
+                    }
+                }
+            }
+            yield return new WaitForSeconds(0.5f);
+        }
+        
+    }
+
+
+
+    private void ApplyForce()
+    {
+        foreach (GameObject node in NetworkObjectContainer.GetNodes())
+        {
+            NodeInfo nodeInfo = node.GetComponent<NodeInfo>();
+            var discNodes = NetworkObjectContainer.GetNodes().Except(nodeInfo.connectedNodes);
+            foreach (var connNode in nodeInfo.connectedNodes)
+            {
+                Vector3 diffrence = node.transform.position - connNode.transform.position;
+                float distance = (diffrence).magnitude;
+                float appliedForce = connNodeForce * Mathf.Log10(distance / desiredConnectedNodeDistance);
+                nodeInfo.velocity -= appliedForce * Time.deltaTime * diffrence.normalized; 
+            }
+
+            foreach (var discNode in discNodes)
+            {
+                Vector3 diffrence = node.transform.position - discNode.transform.position;
+                float distance = (diffrence).magnitude;
+                if (distance != 0)
+                {
+                    float appliedForce = discNodeForce / Mathf.Pow(distance, 2f);
+                    nodeInfo.velocity += appliedForce * Time.deltaTime * diffrence.normalized;
+                }
+                
+            }
+
+        }
         
     }
 
