@@ -10,6 +10,7 @@ public class VRInput : MonoBehaviour
     bool isGrabbed;
     GameObject grabbedGameobject;
     QuestionnaireManager questionnaire;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -32,12 +33,6 @@ public class VRInput : MonoBehaviour
             PushUiButton();
         }
 
-        if (SteamVR_Actions.Questionnaire_Control.NextQuestion.GetStateUp(SteamVR_Input_Sources.RightHand))
-        {
-            questionnaire.gameObject.SetActive(true);
-            questionnaire.AskQuestion();
-        }
-
         if (isGrabbed)
         {
             Ray raycast = new Ray(transform.position, transform.forward);
@@ -48,11 +43,16 @@ public class VRInput : MonoBehaviour
 
     }
 
+
+
+
+
+
+
     private void PushUiButton()
     {
         Ray raycast = new Ray(transform.position, transform.forward);
         Physics.Raycast(raycast, out RaycastHit hit);
-        //Debug.Log(hit.collider.gameObject.name);
         if (hit.collider.gameObject.name == "DragCube" || isGrabbed)
         {
             if (isGrabbed == false)
@@ -69,6 +69,22 @@ public class VRInput : MonoBehaviour
                 hasShot = true;
                 hit.collider.gameObject.GetComponent<Button>().onClick.Invoke();
             }
+        }
+        else if (hit.collider.gameObject.GetComponent<SimonSaysNodeReference>() != null)
+        {
+            hit.collider.gameObject.GetComponent<SimonSaysNodeReference>().setAnswer();
+        }
+        else if (hit.collider.gameObject.name == "Pointer")
+        {
+            if (MainScript.Instance.phase == 6)
+            {
+                Fase4.Instance.AnswerFase(hit.collider.gameObject.transform.position);
+            }
+            else
+            {
+                Fase1.Instance.AnswerFase(hit.collider.gameObject.transform.position);
+            }
+
         }
     }
 }

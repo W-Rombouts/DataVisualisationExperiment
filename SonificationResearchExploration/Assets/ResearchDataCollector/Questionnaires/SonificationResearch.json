@@ -1,1 +1,101 @@
-{"Title":"SonificationResearch","QuestionBlocks":[{"SubTitle":"Introduction","BlockQuestion":"","Questions":[{"question":"Do you have any visual impairment","questionType":2,"likertIs5":false,"likertLowestText":"","likertHighestText":"","multiAnswers":["Yes","No"],"numberScaleMax":0,"numberScaleMin":0,"numPadDefaultValue":""},{"question":"Do you have any auditory impairment","questionType":2,"likertIs5":false,"likertLowestText":"","likertHighestText":"","multiAnswers":["Yes","No"],"numberScaleMax":0,"numberScaleMin":0,"numPadDefaultValue":""}]},{"SubTitle":"Fase1","BlockQuestion":"","Questions":[{"question":"Do you feel like you where able to choose the location correctly?","questionType":2,"likertIs5":false,"likertLowestText":"","likertHighestText":"","multiAnswers":["Yes","No"],"numberScaleMax":0,"numberScaleMin":0,"numPadDefaultValue":""}]},{"SubTitle":"Fase2","BlockQuestion":"","Questions":[{"question":"Do you feel like you where able to choose the location correctly?","questionType":2,"likertIs5":false,"likertLowestText":"","likertHighestText":"","multiAnswers":["Yes","No"],"numberScaleMax":0,"numberScaleMin":0,"numPadDefaultValue":""}]},{"SubTitle":"Fase3","BlockQuestion":"","Questions":[{"question":"Do you feel like you where able to choose the location correctly?","questionType":2,"likertIs5":false,"likertLowestText":"","likertHighestText":"","multiAnswers":["Yes","No"],"numberScaleMax":0,"numberScaleMin":0,"numPadDefaultValue":""}]},{"SubTitle":"Fase4","BlockQuestion":"","Questions":[{"question":"Do you feel like you where able to choose the location correctly?","questionType":2,"likertIs5":false,"likertLowestText":"","likertHighestText":"","multiAnswers":["Yes","No"],"numberScaleMax":0,"numberScaleMin":0,"numPadDefaultValue":""}]}]}
+{
+  "Title": "SonificationResearch",
+  "QuestionBlocks": [
+    {
+      "SubTitle": "Introduction",
+      "BlockQuestion": "",
+      "Questions": [
+        {
+          "question": "Do you have any visual impairment",
+          "questionType": 2,
+          "likertIs5": false,
+          "likertLowestText": "",
+          "likertHighestText": "",
+          "multiAnswers": [ "Yes", "No" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        },
+        {
+          "question": "Do you have any auditory impairment",
+          "questionType": 2,
+          "likertIs5": false,
+          "likertLowestText": "",
+          "likertHighestText": "",
+          "multiAnswers": [ "Yes", "No" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        }
+      ]
+    },
+    {
+      "SubTitle": "Fase1",
+      "BlockQuestion": "",
+      "Questions": [
+        {
+          "question": "Do you feel like you where able to choose the location correctly?",
+          "questionType": 2,
+          "likertIs5": false,
+          "likertLowestText": "",
+          "likertHighestText": "",
+          "multiAnswers": [ "Yes", "No" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        }
+      ]
+    },
+    {
+      "SubTitle": "Fase2",
+      "BlockQuestion": "",
+      "Questions": [
+        {
+          "question": "Do you feel like you where able to choose the location correctly?",
+          "questionType": 2,
+          "likertIs5": false,
+          "likertLowestText": "",
+          "likertHighestText": "",
+          "multiAnswers": [ "Yes", "No" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        }
+      ]
+    },
+    {
+      "SubTitle": "Fase3",
+      "BlockQuestion": "",
+      "Questions": [
+        {
+          "question": "Do you feel like you where able to choose the location correctly?",
+          "questionType": 2,
+          "likertIs5": false,
+          "likertLowestText": "",
+          "likertHighestText": "",
+          "multiAnswers": [ "Yes", "No" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": ""
+        }
+      ]
+    },
+    {
+      "SubTitle": "Fase4",
+      "BlockQuestion": "",
+      "Questions": [
+        {
+          "likertHighestText": "",
+          "likertIs5": false,
+          "likertLowestText": "",
+          "multiAnswers": [ "Yes", "No" ],
+          "numberScaleMax": 0,
+          "numberScaleMin": 0,
+          "numPadDefaultValue": "",
+          "question": "Do you feel like you where able to choose the location correctly?",
+          "questionType": 2
+        }
+      ]
+    }
+  ]
+}

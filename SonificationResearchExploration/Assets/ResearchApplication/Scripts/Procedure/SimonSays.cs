@@ -10,15 +10,16 @@ public class SimonSays : MonoBehaviour
     private AudioManager audioManager;
     private MainScript mainScript;
     int itteration = 0;
-    float time1 = 0;
-    float time2 = 2;
-    float time3 = 4;
+    float freq1 = 524f;
+    float freq2 = 1524f;
+    float freq3 = 264f;
     bool done1 = false;
     bool done2 = false;
     bool done3 = false;
-
+    List<float> freqList = new List<float>() { 264f, 524f, 1524f };
     private float counter;
     List<string> answer = new List<string>();
+    List<string> checkList = new List<string>();
 
     private void Awake()
     {
@@ -67,60 +68,97 @@ public class SimonSays : MonoBehaviour
             orbName = "error";
         }
         answer.Add(orbName);
+        foreach (var item in answer)
+        {
+            Debug.Log(item);
+        }
+       
     }
 
     public void DoOneSequence()
     {
-        if (counter > time1 && !done1)
+        if (counter > 0f && !done1)
         {
-            SetSoundofOrb(SimonSays.SimonSaysOrb.OrbLeft, freq: 524f);
+            SetSoundofOrb(SimonSays.SimonSaysOrb.OrbLeft, freq: freq1);
             done1 = true;
+            
         }
-        if (counter > time2 && !done2)
+        if (counter > 2f && !done2)
         {
-            SetSoundofOrb(SimonSays.SimonSaysOrb.OrbMiddle, freq: 1524f);
+            SetSoundofOrb(SimonSays.SimonSaysOrb.OrbMiddle, freq: freq2);
 
             done2 = true;
         }
-        if (counter > time3 && !done3)
+        if (counter > 4f && !done3)
         {
-            SetSoundofOrb(SimonSays.SimonSaysOrb.OrbRight, freq: 264f);
+            SetSoundofOrb(SimonSays.SimonSaysOrb.OrbRight, freq: freq3);
             done3 = true;
         }
 
         if (answer.Count == 3)
         {
-            //TODO: report the answer
+            if (answer == checkList)
+            {
+                Answer answ = new Answer()
+                {
+                    question = "Can the participant solve sequence " + (itteration + 1).ToString() + " correctly?",
+                    answer = "Yes",
+                    questionAnswerTime = Time.realtimeSinceStartup,
+                    questionAskTime = Time.realtimeSinceStartup
+                };
+                QuestionnaireManager.Instance.LogNonQuestionnaireAnswer(answ);
+            }
+            else
+            {
+                Answer answ = new Answer()
+                {
+                    question = "Can the participant solve sequence " + (itteration + 1).ToString() + " correctly?",
+                    answer = "No",
+                    questionAnswerTime = Time.realtimeSinceStartup,
+                    questionAskTime = Time.realtimeSinceStartup
+                };
+                QuestionnaireManager.Instance.LogNonQuestionnaireAnswer(answ);
+            }
+            
+
+            counter = 0;
             answer = new List<string>();
             itteration++;
             if (itteration == 1)
             {
-                time1 = 4f;
-                time2 = 2f;
-                time3 = 0f;
+                freq1 = freqList[0];
+                freq2 = freqList[1];
+                freq3 = freqList[2];
+                checkList = new List<string>() { "Left", "Middle", "Right" };
             }
             else if (itteration == 2)
             {
-                time1 = 2f;
-                time2 = 4f;
-                time3 = 0f;
+                freq1 = freqList[0]; 
+                freq2 = freqList[2];
+                freq3 = freqList[1];
+                checkList = new List<string>() { "Left",  "Right","Middle" };
             }
             else if (itteration == 3)
             {
-                time1 = 2f;
-                time2 = 0f;
-                time3 = 4f;
+                freq1 = freqList[1]; 
+                freq2 = freqList[0]; 
+                freq3 = freqList[2];
+                checkList = new List<string>() {  "Middle", "Left", "Right" };
             }
             else if (itteration == 4)
             {
-                time1 = 2f;
-                time2 = 0f;
-                time3 = 4f;
+                freq1 = freqList[2];
+                freq2 = freqList[1]; 
+                freq3 = freqList[0];
+                checkList = new List<string>() {"Right", "Middle", "Left" };
             }
             else
             {
                 mainScript.UpdatePhase();
             }
+            done1 = false;
+            done2 = false;
+            done3 = false;
             counter = 0;
         }
 

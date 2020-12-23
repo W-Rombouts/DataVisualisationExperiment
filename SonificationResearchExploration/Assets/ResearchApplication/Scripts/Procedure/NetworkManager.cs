@@ -23,6 +23,7 @@ public class NetworkManager : MonoBehaviour
     public int CustomNumberOfNodes = 0;
     public int NumberOfLockedNodes = 1;
     public List<GameObject> sortedList;
+    
     private Dictionary<GameObject, int> nodeBySize = new Dictionary<GameObject, int>();
     private bool isSorted = true;
 
@@ -37,11 +38,19 @@ public class NetworkManager : MonoBehaviour
     public float connNodeForce = 1f;
     public float discNodeForce = 1f;
     public float desiredConnectedNodeDistance = 1f;
+    public bool FastRenderingSlowCalculation = true;
+    public bool isDebugRun = false;
+    public bool saveLayout = false;
     bool isLoaded = false;
+    bool isRunningCoroutine = true;
+   
+
     List<NodeInfo> nodeInfos = new List<NodeInfo>();
 
+
+
     public static NetworkManager Instance { get; private set; }
-    private void Awake()
+    void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -70,8 +79,8 @@ public class NetworkManager : MonoBehaviour
         {
             DestroyNetwork();
         }
-        _ = StartCoroutine("ApplyForceAsync");
     }
+
 
     private void LoadAlternateLayout(string alternateNodePath)
     {
@@ -106,7 +115,6 @@ public class NetworkManager : MonoBehaviour
         if (CustomNumberOfNodes == 0 || CustomNumberOfNodes > graphs[0].nodes.Count)
         {
             numberOfNodes = graphs[0].nodes.Count;
-
         }
         else
         {
@@ -115,15 +123,11 @@ public class NetworkManager : MonoBehaviour
 
         for (int i = 0; i < numberOfNodes; i++)
         {
-
-
-
             Node node = graphs[0].nodes[i];
             if (node.incomingEdges.Count + node.outgoingEdges.Count > connectionCounter)
             {
                 connectionCounter = node.incomingEdges.Count + node.outgoingEdges.Count;
             }
-
 
             int numberConnections = node.incomingEdges.Count + node.outgoingEdges.Count;
 
@@ -148,7 +152,6 @@ public class NetworkManager : MonoBehaviour
             networkObjects.Add(nodeObject);
             nodeObject.gameObject.transform.localScale = nodeObject.gameObject.transform.localScale * ((numberConnections / highestConnecitonCount) + MinimumNodeSize);
             nodeObjects.Add(node, nodeObject);
-
 
         }
         int nodeCount = networkObjects.Count;
@@ -182,6 +185,52 @@ public class NetworkManager : MonoBehaviour
         NetworkObjectContainer = networkObjectContainer;
         return networkObjectContainer;
     }
+
+
+
+    public struct JsonLayoutExport
+    {
+        public List<Vector3> edgeStartPosition;
+        public List<Vector3> posSequence;
+        public List<Vector3> scaleSequence;
+        public List<Vector3> edgeEndPosition;
+        public List<Vector3> LockedLocations;
+        
+    }
+
+    public void exportNetworkObjectContainer()
+    {
+        //Debug.Log(NetworkObjectContainer.networkObjects.Count - NetworkObjectContainer.nodeCount);
+        JsonLayoutExport jsonLayoutExport = new JsonLayoutExport();
+        jsonLayoutExport.edgeEndPosition = new List<Vector3>();
+        jsonLayoutExport.edgeStartPosition = new List<Vector3>();
+        jsonLayoutExport.LockedLocations = new List<Vector3>();
+        Dictionary<Vector3,Vector3> scalePerPosition = new Dictionary<Vector3, Vector3>();
+        Debug.Log(NetworkObjectContainer.nodeCount);
+        for (int i = NetworkObjectContainer.nodeCount; i < NetworkObjectContainer.networkObjects.Count; i++)
+        {
+            EdgeBehaviour edgeScript = NetworkObjectContainer.networkObjects[i].GetComponent<EdgeBehaviour>();
+            jsonLayoutExport.edgeStartPosition.Add(edgeScript.leftNode.transform.position);
+            jsonLayoutExport.edgeEndPosition.Add(edgeScript.rightNode.transform.position);
+            scalePerPosition[edgeScript.leftNode.transform.position] = edgeScript.leftNode.transform.localScale;
+            scalePerPosition[edgeScript.rightNode.transform.position] = edgeScript.rightNode.transform.localScale;
+
+        }
+        jsonLayoutExport.scaleSequence = scalePerPosition.Values.ToList();
+        jsonLayoutExport.posSequence = scalePerPosition.Keys.ToList();
+        foreach (GameObject GO in sortedList)
+        {
+            jsonLayoutExport.LockedLocations.Add(GO.transform.position);
+        }
+        
+
+        string currentLayout = JsonConvert.SerializeObject(jsonLayoutExport);
+        StreamWriter writer = new StreamWriter("Assets/ResearchApplication/Data/layout.json");
+        writer.Write(currentLayout);
+        writer.Close();
+        Debug.Log("LayoutSaved");
+    }
+
 
     public struct NetworkObjects
     {
@@ -237,19 +286,54 @@ public class NetworkManager : MonoBehaviour
             }
             isSorted = true;
         }
+
+
+
         if (!isLoaded)
         {
-            loadNodes();
+            if (NetworkOnStart)
+            {
+                loadNodes();
+            }
+            
 
         }
         else
         {
             if (isApplyForce)
             {
-                
-                //isApplyForce = false;
+                if (FastRenderingSlowCalculation)
+                {
+                    if (!isRunningCoroutine)
+                    {
+                        StartCoroutine("ApplyForceAsync");
+                        isRunningCoroutine = true;
+                    }
+                }
+                else
+                {
+                    isRunningCoroutine = false;
+                    ApplyForce();
+                }
+            }
+            else
+            {
+                isRunningCoroutine = false;
             }
         }
+
+
+
+
+        if (saveLayout)
+        {
+            saveLayout = false;
+            exportNetworkObjectContainer();
+            //LoadNetworkObjectContainer();
+        }
+
+
+
 
 
     }
@@ -269,7 +353,7 @@ public class NetworkManager : MonoBehaviour
 
     IEnumerator ApplyForceAsync()
     {
-        while (true)
+        while (FastRenderingSlowCalculation && isApplyForce)
         {
             foreach (NodeInfo nodeInfo in nodeInfos)
             {

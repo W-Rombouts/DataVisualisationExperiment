@@ -14,7 +14,9 @@ public class MainScript : MonoBehaviour
     public GameObject Fase1;
     Fase1 fase1Script;
     public GameObject Fase4;
-    private int phase = 0;
+    Fase4 fase4Script;
+    public bool phasAnswerSync;
+    public int phase = 0;
     private bool isQuestionAsked = true;
     private bool isQuestionAnswered = true;
 
@@ -35,15 +37,12 @@ public class MainScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        phasAnswerSync = false;
         simonScript = simonSays.GetComponent<SimonSays>();
         fase1Script = Fase1.GetComponent<Fase1>();
+        fase4Script = Fase4.GetComponent<Fase4>();
         audioManager = AudioManager.Instance;
         noticeableDistance = MinimalNoticeableDistance.GetComponent < MinimalNoticeableDistance >();
-    }
-
-    public void questionaireDone()
-    {
-        isQuestionAnswered = true;
     }
 
     public void UpdatePhase(bool askQuestion = false)
@@ -51,7 +50,9 @@ public class MainScript : MonoBehaviour
         phase++;
         if (askQuestion)
         {
-            isQuestionAsked = false;
+            isQuestionAnswered = false;
+            phasAnswerSync = true;
+            QuestionnaireManager.Instance.AskQuestion();
         }
        
     }
@@ -59,16 +60,21 @@ public class MainScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (isQuestionAsked && isQuestionAnswered)
+        if (isQuestionAnswered)
         {
-            if (phase == 1)
+            if (phase == 0)
             {
-                //TODO: <Intro>.SetActive(false);
+                BaseLine.SetActive(true);
+            }
+            else if (phase == 1)
+            {
+                BaseLine.SetActive(true);
                 simonSays.SetActive(true);
                 simonScript.DoOneSequence();
             }
             else if (phase == 2)
             {
+                BaseLine.SetActive(true);
                 simonSays.SetActive(false);
                 MinimalNoticeableDistance.SetActive(true);
                 noticeableDistance.DoMNDSequence();
@@ -76,6 +82,7 @@ public class MainScript : MonoBehaviour
             else if (phase == 3)
             {
                 MinimalNoticeableDistance.SetActive(false);
+                BaseLine.SetActive(false);
                 Fase1.SetActive(true);
                 fase1Script.DoSequenceFase1();
             }
@@ -91,60 +98,25 @@ public class MainScript : MonoBehaviour
             {
                 Fase1.SetActive(false);
                 Fase4.SetActive(true);
+                fase4Script.DoSequenceFase4();
             }
         }
-        else
+
+
+        if (phasAnswerSync == false)
         {
-            if (!isQuestionAsked)
-            {
-                QuestionnaireManager.Instance.AskQuestion();
-                isQuestionAsked = true;
-                isQuestionAnswered = false;
-            }
+            isQuestionAnswered = true;
         }
-
-
 
 
     }
-    #region Instruction
+    public void setPhaseAnswerSync()
+    {
+        phasAnswerSync = false;
+    }
+    
 
-    #endregion
-
-    #region SimonSays Tone
-
-
-
-
-
-    #endregion
-
-    #region SimonSays Volume
-
-    #endregion
-
-    #region NinimalNoticeableDistance
-
-    #endregion
-
-    #region Fase 1 
-
-    #endregion
-
-    #region Fase 2
-
-    #endregion
-
-    #region Fase 3
-
-    #endregion
-
-    #region Fase 4
-
-    #endregion
-
-
-    public Vector3 GetPositionFromDegree(int degree,int radius = 10)
+    public Vector3 GetPositionFromDegree(int degree,int radius = 7)
     {
         float radiant = degree * (3.14f / 180);
 

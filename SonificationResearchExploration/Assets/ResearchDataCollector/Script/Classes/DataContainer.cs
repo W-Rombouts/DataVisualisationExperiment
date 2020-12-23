@@ -11,5 +11,18 @@ public class DataContainer
     public int SubjectID { get; set; }
     public string ResearchName { get; set; }
     public List<SerialisableTransform> TransformList { get;set; }
+
+    public SysSpec systemSpec;
+
     
+}
+
+
+public class SysSpec
+{
+    public string CPU;
+    public string GPU;
+    public string Ram;
+    public string OS;
+
 }

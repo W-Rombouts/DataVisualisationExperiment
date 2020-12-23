@@ -4,30 +4,53 @@ using UnityEngine;
 
 public class Fase1 : MonoBehaviour
 {
-    MainScript mainScript;
+    public MainScript mainScript;
     NetworkManager networkManager;
+    public GameObject NodeObject;
+    public GameObject Pointer;
     static List<int> referenceList = new List<int>() { 0, 45, 90, 135, 180, 225, 270, 315 };
-    static List<int> referenceListNearMiss = new List<int>() { 15, 60, 105, 150, 165, 210, 255, 300 };
+    //static List<int> referenceListNearMiss = new List<int>() { 15, 60, 105, 150, 165, 210, 255, 300 };
     List<GameObject> nodeListGo = new List<GameObject>();
     List<GameObject> nodeListGoNearMiss = new List<GameObject>();
     private bool isGenerated = false;
-    private bool isAnswered = false;
+    private bool isAnswered = true;
+    private float askedTime;
     int counter = 0;
-    private int fase= 0;
+    public int fase= 0;
+
+
+    #region SINGLETON PATTERN
+    public static Fase1 Instance { get; private set; }
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+    #endregion
+
+
+
+
     // Start is called before the first frame update
     void Start()
     {
-        mainScript = MainScript.Instance;
         networkManager = NetworkManager.Instance;
-        int i = 0;
+        //int i = 0;
         foreach (var item in referenceList)
         {
-            GameObject tempGo = Instantiate(networkManager.NodeObject, mainScript.GetPositionFromDegree(item), Quaternion.identity);
-            GameObject tempGoNM = Instantiate(networkManager.NodeObject, mainScript.GetPositionFromDegree(referenceListNearMiss[i]), Quaternion.identity);
+            GameObject tempGo = Instantiate(NodeObject, mainScript.GetPositionFromDegree(item), Quaternion.identity);
+            GameObject tempGoNM = Instantiate(NodeObject, mainScript.GetPositionFromDegree(item+15), Quaternion.identity);
             tempGo.GetComponent<UpdateFlare>().nodeMesh.enabled = false;
             tempGoNM.GetComponent<UpdateFlare>().nodeMesh.enabled = false;
             nodeListGo.Add(tempGo);
             nodeListGoNearMiss.Add(tempGoNM);
+            mainScript.phasAnswerSync = true;
 
         }
         nodeListGo.Shuffle();
@@ -37,48 +60,72 @@ public class Fase1 : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
     public void DoSequenceFase1()
     {
-  
-        if (isAnswered)
+        if (fase != 1)
         {
+            QuestionnaireManager.Instance.AskQuestion();
             fase = 1;
-            if (nodeListGo.Count == counter)
+        }
+  
+        if (!mainScript.phasAnswerSync&& isAnswered)
+        {
+
+            if (nodeListGo.Count-1 == counter)
             {
                 counter = 0;
                 nodeListGo.Shuffle();
-                mainScript.UpdatePhase();
+                mainScript.phasAnswerSync = true;
+                mainScript.UpdatePhase(true);
+                Pointer.SetActive(false);
             }
             else
             {
                 mainScript.SetSoundofOrb(nodeListGo[counter]);
+                counter++;
+                isAnswered = false;
+                Pointer.SetActive(true);
             }
-            isAnswered = false;
+            
+            askedTime = Time.realtimeSinceStartup;
         }
-
-        
     }
 
     public void DoSequenceFase2()
     {
         if (fase != 2)
         {
+            mainScript.phasAnswerSync = true;
+            QuestionnaireManager.Instance.AskQuestion();
             fase = 2;
             enableNodeMeshes();
+
+
         }
-        if (isAnswered)
+        if (!mainScript.phasAnswerSync && isAnswered)
         {
             
-            if (nodeListGo.Count == counter)
+            if (nodeListGo.Count-1 == counter)
             {
                 counter = 0;
                 nodeListGo.Shuffle();
-                mainScript.UpdatePhase();
+                mainScript.UpdatePhase(true);
+                mainScript.phasAnswerSync = true;
+                Pointer.SetActive(false);
+
             }
-            mainScript.SetSoundofOrb(nodeListGo[counter], isFlare: true); ;
-            isAnswered = false;
+            else
+            {
+                Pointer.SetActive(true);
+                mainScript.SetSoundofOrb(nodeListGo[counter], isFlare: true);
+                isAnswered = false;
+                counter++;
+            }
+           
+            
+            askedTime = Time.realtimeSinceStartup;
         }
 
 
@@ -86,28 +133,41 @@ public class Fase1 : MonoBehaviour
 
     public void DoSequenceFase3()
     {
+
         if (fase != 3)
         {
+            mainScript.phasAnswerSync = true;
+            QuestionnaireManager.Instance.AskQuestion();
             fase = 3;
             enableNodeMeshes();
         }
-        if (isAnswered)
+        if (!mainScript.phasAnswerSync && isAnswered)
         {
 
-            if (nodeListGo.Count == counter)
+            if (nodeListGo.Count-1 == counter)
             {
+                Pointer.SetActive(false);
                 for (int i = 0; i < nodeListGo.Count; i++)
                 {
                     Destroy(nodeListGo[i]);
                     Destroy(nodeListGoNearMiss[i]);
                 }
-                mainScript.UpdatePhase();
+                mainScript.UpdatePhase(true);
+                mainScript.phasAnswerSync = true;
+                fase = 0;
+
             }
-            mainScript.SetSoundofOrb(nodeListGoNearMiss[counter]); ;
-            isAnswered = false;
+            else
+            {
+                Pointer.SetActive(true);
+                mainScript.SetSoundofOrb(nodeListGoNearMiss[counter]);
+                isAnswered = false;
+                counter++;
+            }
+            
+            
+            askedTime = Time.realtimeSinceStartup;
         }
-
-
     }
 
     public void AnswerFase(Vector3 selectedPosition)
@@ -120,8 +180,14 @@ public class Fase1 : MonoBehaviour
         };
         newAnswer.CalcDiffrence();
 
-        //TODO: save answer
-
+        Answer anws = new Answer()
+        {
+            question = "What is the error in condition " + newAnswer.faseNR + "?",
+            answer = newAnswer.diffrence.ToString(),
+            questionAnswerTime = Time.realtimeSinceStartup,
+            questionAskTime = askedTime
+        };
+        QuestionnaireManager.Instance.LogNonQuestionnaireAnswer(anws);
         isAnswered = true;
 
     }
@@ -145,7 +211,7 @@ public class phaseAnswer
     public int faseNR;
     public Vector3 selectedLocation;
     public Vector3 ActualLocation;
-    private float diffrence;
+    public float diffrence;
 
     public void CalcDiffrence()
     {

@@ -25,7 +25,7 @@ public class ResearchDataCollector : MonoBehaviour
     private List<DataContainer> LocalLoggerList = new List<DataContainer>();
     public bool screenCapture = false;
     private CaptureFromCamera Recorder;
-
+    SysSpec sysSpec;
     #region SINGLETON PATTERN
     public static ResearchDataCollector _instance;
 
@@ -59,7 +59,14 @@ public class ResearchDataCollector : MonoBehaviour
         trackedGameObject.Add(HMD.gameObject);
         trackedGameObject.Add(leftController);
         trackedGameObject.Add(rightController);
-
+        sysSpec = new SysSpec()
+        {
+            CPU = SystemInfo.processorType,
+            GPU = SystemInfo.graphicsDeviceName,
+            Ram = SystemInfo.systemMemorySize.ToString()+"Mb",
+            OS = SystemInfo.operatingSystem
+        };
+        Debug.Log(sysSpec.CPU+"/"+sysSpec.GPU+"/" + sysSpec.Ram+"/"+sysSpec.OS);
         Recorder = gameObject.GetComponent<CaptureFromCamera>();
     }
 
@@ -89,6 +96,7 @@ public class ResearchDataCollector : MonoBehaviour
             researchDataContainter.SubjectID = subjectID;
             researchDataContainter.ResearchName = researchID;
             researchDataContainter.TransformList = transformList;
+            researchDataContainter.systemSpec = sysSpec;
             if (LocalLogging)
             {
                 LocalLoggerList.Add(researchDataContainter);

@@ -13,13 +13,14 @@ public class PointerCursor : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(LateStart(2));
+        
         
     }
 
     // Update is called once per frame
     void Update()
     {
+
         //TODO: Create button interaction
         distance += SteamVR_Actions.default_Extend.GetAxis(SteamVR_Input_Sources.RightHand).y*.01f;
 
@@ -36,13 +37,7 @@ public class PointerCursor : MonoBehaviour
         Vector3 max = new Vector3(source.transform.localPosition.x, source.transform.localPosition.y, source.transform.localPosition.z + 5f);
         gameObject.transform.localPosition = Vector3.Lerp(min, max, distance); ;
     }
-    IEnumerator LateStart(float waitTime)
-    {
-        yield return new WaitForSeconds(waitTime);
-        
-        
-        //Your Function You Want to Call
-    }
+
     public void SavePosition()
     {
         Debug.Log(gameObject.transform.position);

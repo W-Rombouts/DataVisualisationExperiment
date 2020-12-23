@@ -27,11 +27,13 @@ public class UpdateFlare : MonoBehaviour
             if (counter > flareDuration)
             {
                 flareMesh.enabled = false;
+                isFlareOn = false;
+                counter = 0;
             }
         }
     }
 
-    public void EnableFlare(float duration =1f)
+    public void EnableFlare(float duration =1.5f)
     {
         flareDuration = duration;
         flareMesh.enabled = true;

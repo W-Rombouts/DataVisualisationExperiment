@@ -48,6 +48,7 @@ public class QuestionnaireManager : MonoBehaviour
     private List<Question> questionSequence = new List<Question>();//Incase questions are asked out of sequence to be matched with answerList.
     private MeshRenderer background;
     public List<string> answerList = new List<string>();
+    private List<Answer> answerListNonQuestionnaire = new List<Answer>();
     private List<float> questionTime=new List<float>();
     private List<float> answerTime = new List<float>();
     private int repeatOffset = 0;
@@ -75,6 +76,8 @@ public class QuestionnaireManager : MonoBehaviour
             questionList = Qinfo.questionDict.Values.ToList();
             questionnaireIsLoaded = true;
         }
+        Debug.Log(SystemInfo.graphicsDeviceName);
+
     }
 
     public void AskQuestion(Question toBeAskedQuestion = null,bool isRepeatQuestion = false)
@@ -98,7 +101,7 @@ public class QuestionnaireManager : MonoBehaviour
                     Question question;
                     if (toBeAskedQuestion == null)
                     {
-                        question = questionList[answerList.Count];
+                        question = questionList[answerList.Count-repeatOffset];
                     }
                     else
                     {
@@ -164,6 +167,12 @@ public class QuestionnaireManager : MonoBehaviour
         questionnaireRenderer.SetActive(false);
     }
 
+    public void LogNonQuestionnaireAnswer(Answer answer)
+    {
+        answerListNonQuestionnaire.Add(answer);
+    }
+
+
     public void RecordAnswer(AudioClip answer,float startime)
     {
         answerTime.Add(startime);
@@ -201,7 +210,7 @@ public class QuestionnaireManager : MonoBehaviour
             researchID = ResearchDataCollector.Instance.researchID,
             subjectID = ResearchDataCollector.Instance.subjectID
         };
-        form.answers = new List<Answer>();
+        form.answers = answerListNonQuestionnaire;
         for (int i = 0; i < questionSequence.Count; i++)
         {
             Answer answ = new Answer
@@ -227,7 +236,7 @@ class AnswerForm
     public List<Answer> answers;
 }
 
-class Answer
+public class Answer
 {
     public string question;
     public string answer;

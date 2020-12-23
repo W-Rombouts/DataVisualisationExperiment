@@ -12,7 +12,8 @@ public class TempAnswerHolder : MonoBehaviour
     private AudioClip AudioAnswer;
     public GameObject[] Questiontypes;
     public TextMeshProUGUI SubQuestion;
-    
+    public GameObject QuestionnaireRenderer;
+    public MeshRenderer questionnaireMeshRenderer;
     // Start is called before the first frame update
     void Start()
     {
@@ -61,6 +62,8 @@ public class TempAnswerHolder : MonoBehaviour
             gameobject.SetActive(false);
         }
         SubQuestion.text = "";
+        QuestionnaireRenderer.SetActive(false);
+        questionnaireMeshRenderer.enabled = false;
     }
 
 }
