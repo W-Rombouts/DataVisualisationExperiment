@@ -23,7 +23,10 @@ public class NodeInfo : MonoBehaviour
     {
         mainScript = MainScript.Instance;
         networkManager = NetworkManager.Instance;
-        position = gameObject.transform.position;
+        if (networkManager != null)
+        {
+            isDebugRun = networkManager.isDebugRun;
+        }
         isDebugRun = networkManager.isDebugRun;
         if (mainScript.phase == 6 || isDebugRun)
         {
@@ -36,7 +39,15 @@ public class NodeInfo : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        isDebugRun = networkManager.isDebugRun;
+        if (networkManager != null)
+        {
+            isDebugRun = networkManager.isDebugRun;
+        }
+        else
+        {
+            networkManager = NetworkManager.Instance;
+        }
+        
         if (mainScript.phase == 6 || isDebugRun)
         {
             if (!isListChecked && networkManager.sortedList.Contains(gameObject))

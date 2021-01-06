@@ -55,14 +55,14 @@ public class Fase4 : MonoBehaviour
             if (network.LockedNodesList.Count - 1 == counter)
             {
                 Pointer.SetActive(false);
-                //mainScript.UpdatePhase(true);
+                mainScript.UpdatePhase(true);
                 mainScript.phasAnswerSync = true;
-                QuestionnaireManager.Instance.SaveQuestionnaire();
+                
             }
             else
             {
                 Pointer.SetActive(true);
-                mainScript.SetSoundofOrb(network.LockedNodesList[counter],isFlare:true,volume:1);
+                mainScript.SetSoundofOrb(network.LockedNodesList[counter],isFlare:true);
                 isAnswered = false;
                 counter++;
             }

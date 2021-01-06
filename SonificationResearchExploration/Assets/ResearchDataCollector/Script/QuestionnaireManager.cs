@@ -48,7 +48,7 @@ public class QuestionnaireManager : MonoBehaviour
     private List<Question> questionSequence = new List<Question>();//Incase questions are asked out of sequence to be matched with answerList.
     private MeshRenderer background;
     public List<string> answerList = new List<string>();
-    private List<Answer> answerListNonQuestionnaire = new List<Answer>();
+    public List<Answer> answerListNonQuestionnaire = new List<Answer>();
     private List<float> questionTime=new List<float>();
     private List<float> answerTime = new List<float>();
     private int repeatOffset = 0;
@@ -208,7 +208,10 @@ public class QuestionnaireManager : MonoBehaviour
         {
             dateTime = DateTime.Now,
             researchID = ResearchDataCollector.Instance.researchID,
-            subjectID = ResearchDataCollector.Instance.subjectID
+            subjectID = ResearchDataCollector.Instance.subjectID,
+            sysSpec = ResearchDataCollector.Instance.sysSpec,
+            answers = new List<Answer>()
+            
         };
         form.answers = answerListNonQuestionnaire;
         for (int i = 0; i < questionSequence.Count; i++)
@@ -222,7 +225,18 @@ public class QuestionnaireManager : MonoBehaviour
             };
             form.answers.Add(answ);
         }
-        File.WriteAllText(answerPath+ DateTime.Now.ToString("yyyyMMdd") + filename+".json", JsonConvert.SerializeObject(form));
+        string filePath = answerPath + DateTime.Now.ToString("yyyyMMdd") + filename + ".json";
+        string data = JsonConvert.SerializeObject(form);
+        if (!File.Exists(filePath))
+            File.WriteAllText(filePath, data);
+        else
+        {
+            Debug.Log("never called?");
+            File.Delete(filePath);
+            File.WriteAllText(filePath, data);
+        }
+
+
         Debug.Log("Time Lost Saving:" + (Time.realtimeSinceStartup - starttime).ToString());
     }
 
@@ -233,6 +247,7 @@ class AnswerForm
     public int subjectID;
     public string researchID;
     public DateTime dateTime;
+    public SysSpec sysSpec;
     public List<Answer> answers;
 }
 

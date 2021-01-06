@@ -19,7 +19,7 @@ public class SimonSays : MonoBehaviour
     List<float> freqList = new List<float>() { 264f, 524f, 1524f };
     private float counter;
     List<string> answer = new List<string>();
-    List<string> checkList = new List<string>();
+    List<string> checkList = new List<string>() { "Right", "Left" , "Middle"};
 
     private void Awake()
     {
@@ -68,12 +68,25 @@ public class SimonSays : MonoBehaviour
             orbName = "error";
         }
         answer.Add(orbName);
-        foreach (var item in answer)
-        {
-            Debug.Log(item);
-        }
+
        
     }
+
+
+    public bool CheckAnswer(List<string>answer,List<string>checklist)
+    {
+        bool isSame = true;
+        for (int i = 0; i < answer.Count; i++)
+        {
+            if (answer[i] != checklist[i])
+            {
+                isSame = false;
+            }
+        }
+        return isSame;
+    }
+
+
 
     public void DoOneSequence()
     {
@@ -97,7 +110,7 @@ public class SimonSays : MonoBehaviour
 
         if (answer.Count == 3)
         {
-            if (answer == checkList)
+            if (CheckAnswer(answer,checkList))//TODO: answer checking nog correct
             {
                 Answer answ = new Answer()
                 {
@@ -110,6 +123,13 @@ public class SimonSays : MonoBehaviour
             }
             else
             {
+                Debug.Log(checkList.Count);
+                for (int i = 0; i < answer.Count; i++)
+                {
+                    Debug.Log(answer[i] + "/" + checkList[i]);
+                }
+                Debug.Log(answer == checkList);
+
                 Answer answ = new Answer()
                 {
                     question = "Can the participant solve sequence " + (itteration + 1).ToString() + " correctly?",

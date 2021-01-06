@@ -19,7 +19,6 @@ public class SimonSaysNodeReference : MonoBehaviour
 
     public void setAnswer()
     {
-        Debug.Log("hitts");
         simonSays.RecordSimonSaysAnswer(gameObject);
     }
 }

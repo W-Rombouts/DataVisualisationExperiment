@@ -39,6 +39,7 @@ public class AudioManager : MonoBehaviour
     {
         AudioSource aud = GO.AddComponent<AudioSource>();
         aud.loop = true;
+        aud.spatialize = true;
         aud.spatialBlend = 1f;
         aud.clip = defaultClip;
         aud.volume = volume;
@@ -51,6 +52,7 @@ public class AudioManager : MonoBehaviour
     {
         AudioSource aud = GO.AddComponent<AudioSource>();
         aud.loop = true;
+        aud.spatialBlend = 1f;
         aud.spatialBlend = 1f;
         aud.clip = myClip;
         aud.volume = volume;
@@ -77,6 +79,7 @@ public class AudioManager : MonoBehaviour
         AudioSource aud = GO.AddComponent<AudioSource>();
         aud.loop = true;
         aud.spatialBlend = 1f;
+        aud.spatialBlend = 1f;
         aud.clip = myClip;
         aud.volume = volume;
         aud.Play();
@@ -101,6 +104,7 @@ public class AudioManager : MonoBehaviour
         GO.transform.position = location;
         AudioSource aud = GO.AddComponent<AudioSource>();
         aud.loop = true;
+        aud.spatialBlend = 1f;
         aud.spatialBlend = 1f;
         aud.clip = defaultClip;
         aud.volume = volume;
@@ -130,6 +134,7 @@ public class AudioManager : MonoBehaviour
         AudioSource aud = GO.AddComponent<AudioSource>();
         aud.loop = true;
         aud.spatialBlend = 1f;
+        aud.spatialBlend = 1f;
         aud.clip = defaultClip;
         aud.volume = volume;
         aud.Play();
@@ -156,6 +161,7 @@ public class AudioManager : MonoBehaviour
 
         AudioSource aud = GO.AddComponent<AudioSource>();
         aud.loop = true;
+        aud.spatialBlend = 1f;
         aud.spatialBlend = 1f;
         aud.clip = myClip;
         aud.volume = volume;

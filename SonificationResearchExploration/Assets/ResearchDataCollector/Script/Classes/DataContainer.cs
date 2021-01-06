@@ -12,7 +12,6 @@ public class DataContainer
     public string ResearchName { get; set; }
     public List<SerialisableTransform> TransformList { get;set; }
 
-    public SysSpec systemSpec;
 
     
 }

@@ -25,7 +25,7 @@ public class ResearchDataCollector : MonoBehaviour
     private List<DataContainer> LocalLoggerList = new List<DataContainer>();
     public bool screenCapture = false;
     private CaptureFromCamera Recorder;
-    SysSpec sysSpec;
+    public SysSpec sysSpec;
     #region SINGLETON PATTERN
     public static ResearchDataCollector _instance;
 
@@ -96,7 +96,6 @@ public class ResearchDataCollector : MonoBehaviour
             researchDataContainter.SubjectID = subjectID;
             researchDataContainter.ResearchName = researchID;
             researchDataContainter.TransformList = transformList;
-            researchDataContainter.systemSpec = sysSpec;
             if (LocalLogging)
             {
                 LocalLoggerList.Add(researchDataContainter);

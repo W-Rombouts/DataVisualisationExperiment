@@ -100,6 +100,14 @@ public class MainScript : MonoBehaviour
                 Fase4.SetActive(true);
                 fase4Script.DoSequenceFase4();
             }
+            else if (phase == 7)
+            {
+                if (!phasAnswerSync)
+                {
+                    QuestionnaireManager.Instance.SaveQuestionnaire();
+                }
+
+            }
         }
 
 

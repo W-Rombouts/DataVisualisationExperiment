@@ -9,6 +9,8 @@ public class PointerCursor : MonoBehaviour
 {
     public float distance=0f;
     public Transform source;
+    public float minDistance = 0.1f;
+    public float maxDistance = 10f;
 
     // Start is called before the first frame update
     void Start()
@@ -33,8 +35,8 @@ public class PointerCursor : MonoBehaviour
             distance = 0.005f;
         }
         //localPosition
-        Vector3 min = new Vector3(source.transform.localPosition.x, source.transform.localPosition.y, source.transform.localPosition.z + 0.1f);
-        Vector3 max = new Vector3(source.transform.localPosition.x, source.transform.localPosition.y, source.transform.localPosition.z + 5f);
+        Vector3 min = new Vector3(source.transform.localPosition.x, source.transform.localPosition.y, source.transform.localPosition.z + minDistance);
+        Vector3 max = new Vector3(source.transform.localPosition.x, source.transform.localPosition.y, source.transform.localPosition.z + maxDistance);
         gameObject.transform.localPosition = Vector3.Lerp(min, max, distance); ;
     }
 
