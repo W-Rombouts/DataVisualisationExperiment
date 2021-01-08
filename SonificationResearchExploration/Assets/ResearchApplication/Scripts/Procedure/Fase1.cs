@@ -15,6 +15,7 @@ public class Fase1 : MonoBehaviour
     private bool isGenerated = false;
     private bool isAnswered = true;
     private float askedTime;
+    private bool isADone = false;
     int counter = 0;
     public int fase= 0;
 
@@ -109,17 +110,37 @@ public class Fase1 : MonoBehaviour
             
             if (nodeListGo.Count-1 == counter)
             {
-                counter = 0;
-                nodeListGo.Shuffle();
-                mainScript.UpdatePhase(true);
-                mainScript.phasAnswerSync = true;
-                Pointer.SetActive(false);
+                if (!isADone)
+                {
+                    counter = 0;
+                    nodeListGo.Shuffle();
+                    mainScript.phasAnswerSync = true;
+                    QuestionnaireManager.Instance.AskQuestion();
+                    isADone = true;
+                }
+                else
+                {
+                    counter = 0;
+                    nodeListGo.Shuffle();
+                    mainScript.UpdatePhase(true);
+                    mainScript.phasAnswerSync = true;
+                    Pointer.SetActive(false);
+                }
 
             }
             else
             {
                 Pointer.SetActive(true);
-                mainScript.SetSoundofOrb(nodeListGo[counter], isFlare: true);
+                if (isADone)
+                {
+                    mainScript.SetSoundofOrb(nodeListGo[counter], isFlare: true);
+
+                }
+                else
+                {
+                    mainScript.SetSoundofOrb(nodeListGo[counter]);
+
+                }
                 isAnswered = false;
                 counter++;
             }
@@ -164,8 +185,6 @@ public class Fase1 : MonoBehaviour
                 isAnswered = false;
                 counter++;
             }
-            
-            
             askedTime = Time.realtimeSinceStartup;
         }
     }
